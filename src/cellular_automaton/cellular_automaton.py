@@ -1,50 +1,66 @@
 import threading
 import time
 
-from cellular_automaton.ca_cell import CACell
-from cellular_automaton.ca_grid import CAGrid
+from cellular_automaton.ca_grid import Grid
+from cellular_automaton.ca_rule import Rule
 
 
 class CellularAutomaton:
-    def __init__(self, threads=1):
-        assert threads > 0
-        self._thread_count = threads
+    def __init__(self, dimension: list, rule_: Rule=None, thread_count: int=4):
+        self.grid = Grid(dimension)
+        self._rule = rule_
+        self._thread_count=thread_count
 
-    def evolve(self, grid, neighborhood, rule):
-        range_ = int(len(grid) / self._thread_count)
+    def set_rule(self, rule: Rule):
+        self._rule = rule
 
+    def set_thread_count(self, thread_count: int):
+        self._thread_count = thread_count
+
+    def evolve(self):
+        cell_lists_for_threats = self.create_cell_lists_for_threads()
+        threads = self._start_treads_to_evolve_grid(cell_lists_for_threats)
+        self._wait_for_all_threads_to_finish(threads)
+
+    def create_cell_lists_for_threads(self):
+        active_cells = self.grid.get_active_cells()
+        cell_count_per_thread = int(len(active_cells) / self._thread_count)
+        return self.divide_active_cells(cell_count_per_thread, active_cells)
+
+    @staticmethod
+    def divide_active_cells(cell_count_per_thread, active_cells):
+        return [active_cells[i:i + cell_count_per_thread]
+                for i in range(0, len(active_cells), cell_count_per_thread)]
+
+    def _start_treads_to_evolve_grid(self, cell_lists_for_threats):
         threads = []
         for t in range(self._thread_count):
-            new_thread = EvolutionThread(grid, neighborhood, rule, [t * range_, t * range_ + range_])
+            new_thread = _EvolutionThread(self.grid, self._rule, cell_lists_for_threats[t])
             threads.append(new_thread)
             new_thread.start()
+        return threads
 
-        new_grid_state = []
+    @staticmethod
+    def _wait_for_all_threads_to_finish(threads):
         for thread in threads:
             while not thread.is_finished():
                 time.sleep(0.01)
 
-            new_grid_state.extend(thread.get_new_cell_states())
             thread.join()
 
-        return CAGrid(grid.get_dimensions(), new_grid_state)
 
-
-class EvolutionThread(threading.Thread):
-    def __init__(self, grid, neighborhood, rule, range_):
-        super(EvolutionThread, self).__init__()
+class _EvolutionThread(threading.Thread):
+    def __init__(self, grid: Grid, rule: Rule, cell_list: list):
+        super(_EvolutionThread, self).__init__()
         self._grid = grid
-        self._neighborhood = neighborhood
         self._rule = rule
-        self._range = range_
+        self._cell_list = cell_list
         self._next_state = []
         self._finished = False
 
     def run(self):
-        for cell_id in range(*self._range):
-            neighbors = self._grid.get_all_neighbour_cells(cell_id, self._neighborhood)
-            cell = self._grid[cell_id]
-            self._next_state.append(CACell(self._rule.evolve_cell(cell, neighbors)))
+        for cell in self._cell_list:
+            self._rule.evolve_cell(*self._grid.get_cell_and_neighbors(cell))
         self._finished = True
 
     def get_new_cell_states(self):

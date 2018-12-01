@@ -1,124 +1,78 @@
-from cellular_automaton.ca_cell import CACell
-from functools import reduce
+from cellular_automaton.ca_cell import Cell
+from cellular_automaton.ca_neighborhood import CellularAutomatonNeighborhood
 
 
-class CAGrid:
-    def __init__(self, dimensions, initial_grid_state=None):
-        assert isinstance(dimensions, list)
-        assert len(dimensions) > 0
-        self._dimensions = dimensions
+class Grid:
+    def __init__(self, dimension: list, neighborhood: CellularAutomatonNeighborhood):
+        self._dimension = dimension
+        self._cells = {}
+        self._neighborhood = neighborhood
 
-        self._cell_count = reduce(lambda x, y: x*y, dimensions)
+        self._create_cells()
+        self._set_cell_neighbours()
 
-        if initial_grid_state:
-            assert isinstance(initial_grid_state, list)
-            assert len(initial_grid_state) == self._cell_count
-            assert isinstance(initial_grid_state[0], CACell)
-            self._grid = initial_grid_state
-        else:
-            self._grid = []
+        self._active_cells = {}
+        self.set_all_cells_active()
 
-            for i in range(self._cell_count):
-                self._grid.append(CACell())
+    def set_all_cells_active(self):
+        for cell_key in self._cells:
+            self._active_cells[cell_key] = 1
 
-    def get_index_from_coordinate(self, coordinate):
-        """ Convert a coordinate to the index in the grid list.
-        :param coordinate:  A tuple or list with the position of the cell.
-                            Has to have the same dimension as the grid.
-        :return: The index of the cell at the coordinates
+    def get_active_cells(self):
+        return self._active_cells.keys()
+
+    def get_cell_and_neighbors(self, cell_name):
+        cell = self._cells[cell_name]
+        neighbours = cell.neighbours
+        neighbour_objects = []
+        for ne in neighbours:
+            neighbour_objects.append(self._cells[ne])
+
+        return [cell, neighbour_objects]
+
+
+    def _create_cells(self, dimension_index=0, coordinate=None):
+        """ Recursively steps down the dimensions to create cells in n dimensions and adds them to a dict.
+        :param dimension_index:     The index indicating which dimension is currently traversed.
+        :param coordinate:          The coordinate generated so far.
+                                    (each recursion adds one dimension to the coordinate.
         """
-        assert len(self._dimensions) == len(coordinate)
-        index = 0
-        for i, c in enumerate(coordinate[1:]):
-            index += c * reduce(lambda x, y: x * y, self._dimensions[:i+1])
-        index += coordinate[0]
-        return index
+        coordinate = self.instantiate_coordinate_if_necessary(coordinate)
 
-    def get_coordinate_from_index(self, index):
-        """ Convert an index to the coordinate in the grid list.
-        :param index:       The Index of the cell in the grid.
-        :return: The coordinate pointing at the indexed cell in the grid.
+        try:
+            self._recursive_step_down_dimensions(coordinate, dimension_index, self._create_cells)
+        except IndexError:
+            coordinate_string = '-'.join(coordinate)
+            self._cells[coordinate_string] = Cell(coordinate_string)
+
+    def _recursive_step_down_dimensions(self, coordinate, dimension_index, recursion_method):
+        """ For the range of the current dimension, recalls the recursion method.
+        :param coordinate:          The coordinate so far.
+        :param dimension_index:     The current dimension lvl.
+        :param recursion_method:    The method to call for recursion.
         """
-        coordinate = len(self._dimensions)*[0]
-        for i, d in enumerate(self._dimensions):
-            coordinate[-(i + 1)] = index // reduce(lambda x, y: x * y, self._dimensions[-(i + 1):])
-            index = index % reduce(lambda x, y: x * y, self._dimensions[-(i + 1):])
+        for cell_index in range(self._dimension[dimension_index]):
+            coordinate.append(cell_index)
+            recursion_method(dimension_index + 1, coordinate.copy())
 
-        coordinate[0] = index
+    @staticmethod
+    def instantiate_coordinate_if_necessary(coordinate):
+        if coordinate is None:
+            coordinate = []
         return coordinate
 
-    def get_cell_by_coordinate(self, coordinate):
-        """ Read a cell using a list or tuple as reference
-        :param coordinate   A tuple or list with the position of the cell.
-                            Has to have the same dimension as the grid.
-        :return: The CACell at the coordinate in the grid.
+    def _set_cell_neighbours(self, dimension_index=0, coordinate=None):
+        """ Recursively steps down the dimensions to get the string instances for each cells neighbours.
+        :param dimension_index:     The index indicating which dimension is currently traversed.
+        :param coordinate:          The coordinate generated so far.
+                                    (each recursion adds one dimension to the coordinate.
         """
+        coordinate = self.instantiate_coordinate_if_necessary(coordinate)
+
         try:
-            return self[self.get_index_from_coordinate(coordinate)]
+            self._recursive_step_down_dimensions(coordinate, dimension_index, self._set_cell_neighbours)
         except IndexError:
-            return None
+            neighbours_coordinates = self._neighborhood.get_neighbor_coordinates(coordinate, self._dimension)
+            neighbour_names = [self._cells['-'.join(nc)].name for nc in neighbours_coordinates]
+            self._cells['-'.join(coordinate)].set_neighbours(neighbour_names)
 
-    def get_all_neighbour_cells(self, position, neighborhood):
-        """ Get a list with all cells defined by the neighborhood.
-        :param position:        The position as index or coordinate.
-        :param neighborhood:    The neighborhood definition as tuple.
-        :return: All Cells defined by the neighborhood in a list.
-        """
-        if isinstance(position, (tuple, list)):
-            coordinate = position[:]
-        else:
-            coordinate = self.get_coordinate_from_index(position)
-
-        neighbors = []
-
-        for neighbor in neighborhood:
-            neighbor_coordinate = []
-            for i, (c, nc) in enumerate(zip(coordinate, neighbor)):
-                coord = c + nc
-                if coord < 0:
-                    coord = self._dimensions[i] - 1
-                elif coord == self._dimensions[i]:
-                    coord = 0
-
-                neighbor_coordinate.append(coord)
-
-            index_ = self.get_cell_by_coordinate(neighbor_coordinate)
-            if index_:
-                neighbors.append(index_)
-
-        return neighbors
-
-    def get_dimensions(self):
-        return self._dimensions
-
-    def set_cell_by_coordinate(self, coordinate, value):
-        """ Write to a cell using a list or tuple as reference
-        :param coordinate   A tuple or list with the position of the cell.
-                            Has to have the same dimension as the grid.
-        """
-        try:
-            self._grid[self.get_index_from_coordinate(coordinate)] = value
-        except IndexError:
-            return None
-
-    def __eq__(self, other):
-        if len(self._grid) != len(other):
-            return False
-
-        for i in self._cell_count:
-            if self._grid[i] != other[i]:
-                return False
-
-        return True
-
-    def __len__(self):
-        return len(self._grid)
-
-    def __getitem__(self, index):
-        return self._grid[int(index)]
-
-    def __setitem__(self, index, value):
-        self._grid[index] = value
-
-    def __str__(self):
-        return str(self._grid)
