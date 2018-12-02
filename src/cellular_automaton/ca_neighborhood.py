@@ -7,7 +7,7 @@ class EdgeRule(Enum):
     FIRST_AND_LAST_CELL_OF_DIMENSION_ARE_NEIGHBORS = 2
 
 
-class CellularAutomatonNeighborhood:
+class Neighborhood:
     def __init__(self, neighbors: list, edge_rule: EdgeRule):
         self._neighbors = neighbors
         self.edge_rule = edge_rule
@@ -18,7 +18,9 @@ class CellularAutomatonNeighborhood:
 
     def get_neighbor_coordinates(self, cell_coordinate, dimensions):
         self.dimensions = dimensions
-        if not self._does_ignore_edge_cell_rule_apply(cell_coordinate):
+        if self._does_ignore_edge_cell_rule_apply(cell_coordinate):
+            return []
+        else:
             return self._apply_edge_rule_to_neighbours_of(cell_coordinate)
 
     def _does_ignore_edge_cell_rule_apply(self, coordinate):
@@ -37,6 +39,7 @@ class CellularAutomatonNeighborhood:
         for neighbour in self._neighbors:
             if not self._does_ignore_edge_cell_neighbours_rule_apply(neighbour, cell_coordinate):
                 remaining_neighbours.append(self._calculate_neighbour_coordinate(neighbour, cell_coordinate))
+        return remaining_neighbours
 
     def _does_ignore_edge_cell_neighbours_rule_apply(self, neighbour, cell_coordinate):
         if self.edge_rule == EdgeRule.IGNORE_MISSING_NEIGHBORS_OF_EDGE_CELLS:
@@ -47,18 +50,20 @@ class CellularAutomatonNeighborhood:
         return False
 
     def _calculate_neighbour_coordinate(self, neighbour, cell_coordinate):
+        new_coordinate = []
         for rel_nd, cd, d in zip(neighbour, cell_coordinate, self.dimensions):
             nd = cd + rel_nd
             if nd < 0:
                 nd = d - 1
             elif nd >= d:
                 nd = 0
-            return nd
+            new_coordinate.append(nd)
+        return new_coordinate
 
 
-class MooreNeighborhood(CellularAutomatonNeighborhood):
+class MooreNeighborhood(Neighborhood):
     def __init__(self, edge_rule: EdgeRule):
         super().__init__([[-1, -1], [0, -1], [1, -1],
-                          [-1, 0], [0, 0], [1, 0],
+                          [-1, 0], [1, 0],
                           [-1, 1], [0, 1], [1, 1]],
                          edge_rule)

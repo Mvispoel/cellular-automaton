@@ -2,64 +2,96 @@
 
 import pygame
 import random
+import time
 
 from cellular_automaton.cellular_automaton import CellularAutomaton
-from cellular_automaton.ca_cell import CACell
-from cellular_automaton.ca_grid import CAGrid
-from cellular_automaton.ca_rule import CARule
+from cellular_automaton.ca_rule import Rule
+from cellular_automaton.ca_neighborhood import MooreNeighborhood, EdgeRule
 
 
 class WorldGeneratorWindow:
-    def __init__(self, windows_size):
+    def __init__(self, windows_size: list, cellular_automaton: CellularAutomaton):
         self.window_size = windows_size
+        self.grid_size = self.window_size.copy()
+        self.grid_size[1] -= 20
 
         pygame.init()
         pygame.display.set_caption("World Generator")
-        pygame.display.set_mode(self.window_size)
+        self.screen = pygame.display.set_mode(self.grid_size)
 
-    def display_cellular_automaton(self, cellular_automaton_instance):
-        pass
+        self._cellular_automaton = cellular_automaton
+        self.font = pygame.font.SysFont("monospace", 15)
+
+    def set_cellular_automaton(self, cellular_automaton):
+        self._cellular_automaton = cellular_automaton
+
+    def _display_cellular_automaton(self):
+        grid_dimension = self._cellular_automaton.grid.get_dimension()
+
+        cell_size = [x / y for x, y in zip(self.grid_size, grid_dimension)]
+
+        surfaces_to_update = []
+        for cell in self._cellular_automaton.grid.get_active_cells().values():
+            if not cell.dirty:
+                continue
+            cell_coordinate = cell.coordinate
+            status = cell.get_status_for_iteration(self._cellular_automaton.get_iteration_index())
+            if status is None:
+                status = [0]
+            red = 0
+            if status[0] >= 10:
+                red = 255
+            cell_color = [red, 0, 0]
+            surface_pos = [x * y for x, y in zip(cell_size, cell_coordinate)]
+            surface_pos[1] += 20
+            surfaces_to_update.append(self.screen.fill(cell_color, (surface_pos, cell_size)))
+        pygame.display.update(surfaces_to_update)
+
+    def main_loop(self):
+        running = True
+
+        while running:
+            time_ca_start = time.time()
+            self._cellular_automaton.evolve()
+            time_ca_end = time.time()
+            self._display_cellular_automaton()
+            time_ds_end = time.time()
+            self._print_process_duration(time_ca_end, time_ca_start, time_ds_end)
+
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    running = False
+
+    def _print_process_duration(self, time_ca_end, time_ca_start, time_ds_end):
+        self.screen.fill([0, 0, 0], ((0, 0), (self.window_size[0], 30)))
+        self._write_text((10, 5), "CA: " + "{0:.4f}".format(time_ca_end - time_ca_start) + "s")
+        self._write_text((310, 5), "Display: " + "{0:.4f}".format(time_ds_end - time_ca_end) + "s")
+
+    def _write_text(self, pos, text, color=(0, 255, 0)):
+        label = self.font.render(text, 1, color)
+        update_rect = self.screen.blit(label, pos)
+        pygame.display.update(update_rect)
 
 
-def main():
-
-    running = True
-    pygame.init()
-    pygame.display.set_caption("minimal program")
-
-    screen = pygame.display.set_mode((1000, 730))
-    image = pygame.image.load("../images/map.png")
-    screen.blit(image, (0, 0))
-    screen.set_at((50, 60), [50, 0, 0])
-    screen.set_at((50, 61), [50, 0, 0])
-    screen.set_at((51, 60), [50, 0, 0])
-    screen.set_at((51, 61), [50, 0, 0])
-    pygame.display.flip()
-
-    while running:
-        for x in range(0, 1000):
-            for y in range(0, 700):
-                screen.set_at((x, y), [random.randrange(0, 255), random.randrange(0, 255), random.randrange(0, 255)])
-        pygame.display.flip()
-
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = False
-
-
-class TestRule(CARule):
-    def evolve_cell(self, cell, neighbors):
-        if neighbors[1][0] != 0:
-            return [1]
-        else:
-            return [0]
+class TestRule(Rule):
+    def evolve_cell(self, cell, neighbors, iteration_index):
+        last_iteration = iteration_index - 1
+        if cell.get_status_for_iteration(last_iteration) is None:
+            rand = random.randrange(0, 101, 1)
+            if rand <= 99:
+                rand = 0
+            cell.set_status_for_iteration([rand], iteration_index)
+            cell.set_status_for_iteration([rand], iteration_index + 1)
+            if rand != 0:
+                cell.dirty = True
+        elif len(neighbors) == 8:
+            left_neighbour_status = neighbors[3].get_status_for_iteration(last_iteration)
+            cell.set_status_for_iteration(left_neighbour_status, iteration_index)
+        return cell.dirty
 
 
 if __name__ == "__main__":
-    main()
-    dim = [200, 500]
-    ca = CellularAutomaton(2)
-
-    new_grid = CAGrid(dim)
-    new_grid.set_cell_by_coordinate([1, 1], CACell([1]))
     rule = TestRule()
+    ca = CellularAutomaton([500, 500], MooreNeighborhood(EdgeRule.IGNORE_EDGE_CELLS), rule, thread_count=1)
+    ca_window = WorldGeneratorWindow([1000, 730], ca)
+    ca_window.main_loop()
