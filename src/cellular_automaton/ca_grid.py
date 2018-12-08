@@ -1,5 +1,3 @@
-import sys
-
 from cellular_automaton.ca_cell import Cell
 from cellular_automaton.ca_neighborhood import Neighborhood
 
@@ -16,19 +14,24 @@ class Grid:
         self._active_cells = self._cells.copy()
         self._set_all_cells_active()
 
-    def get_names_of_active_cells(self):
+    def get_active_cell_names(self):
         return list(self._active_cells.keys())
 
     def get_active_cells(self):
         return self._active_cells
 
-    def clear_active_cells(self):
-        self._active_cells.clear()
+    def get_cells(self):
+        return self._cells
 
-    def set_cell_and_neighbours_active(self, cell_info: list):
-        self._active_cells[cell_info[0].name] = cell_info[0]
-        for neighbour in cell_info[1]:
-            self._active_cells[neighbour.name] = neighbour
+    def clear_active_cells(self):
+        self._active_cells = {}
+
+    def set_cells_active(self, cells: list):
+        """ Consider the cells in the next evolution cycle.
+        :param cells:   A list of Cell objects, that shall be considered in the next evolution cycle.
+        """
+        for cell in cells:
+            self._active_cells[cell.name] = cells
 
     def get_cell_and_neighbors(self, cell_name):
         cell = self._cells[cell_name]
@@ -84,17 +87,9 @@ class Grid:
         try:
             self._recursive_step_down_dimensions(coordinate.copy(), dimension_index, self._set_cell_neighbours)
         except IndexError:
-            neighbours_coordinates = self._neighborhood.get_neighbor_coordinates(coordinate, self._dimension)
+            neighbours_coordinates = self._neighborhood.calculate_cell_neighbor_coordinates(coordinate, self._dimension)
             neighbour_names = [self._cells[_join_coordinate(nc)].name for nc in neighbours_coordinates]
             self._cells[_join_coordinate(coordinate)].set_neighbours(neighbour_names)
-
-#    def __sizeof__(self):
-#        size = 0
-#        for cell in self._cells.values():
-#            size += sys.getsizeof(cell)
-#        size += sys.getsizeof(self._dimension) + sys.getsizeof(self._cells) + sys.getsizeof(self._active_cells)
-
-#        return size
 
 
 def _instantiate_coordinate_if_necessary(coordinate):
