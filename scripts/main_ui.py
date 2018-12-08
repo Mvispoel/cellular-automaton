@@ -32,7 +32,7 @@ class WorldGeneratorWindow:
 
         surfaces_to_update = []
         for cell in self._cellular_automaton.grid.get_active_cells().values():
-            if not cell.dirty:
+            if not cell.is_dirty():
                 continue
             cell_coordinate = cell.coordinate
             status = cell.get_status_for_iteration(self._cellular_automaton.get_iteration_index())
@@ -45,6 +45,7 @@ class WorldGeneratorWindow:
             surface_pos = [x * y for x, y in zip(cell_size, cell_coordinate)]
             surface_pos[1] += 20
             surfaces_to_update.append(self.screen.fill(cell_color, (surface_pos, cell_size)))
+            cell.release_dirty()
         pygame.display.update(surfaces_to_update)
 
     def main_loop(self):
@@ -75,6 +76,7 @@ class WorldGeneratorWindow:
 
 class TestRule(Rule):
     def evolve_cell(self, cell, neighbors, iteration_index):
+        active = False
         last_iteration = iteration_index - 1
         if cell.get_status_for_iteration(last_iteration) is None:
             rand = random.randrange(0, 101, 1)
@@ -83,15 +85,18 @@ class TestRule(Rule):
             cell.set_status_for_iteration([rand], iteration_index)
             cell.set_status_for_iteration([rand], iteration_index + 1)
             if rand != 0:
-                cell.dirty = True
+                active = True
+                cell.set_dirty()
         elif len(neighbors) == 8:
             left_neighbour_status = neighbors[3].get_status_for_iteration(last_iteration)
-            cell.set_status_for_iteration(left_neighbour_status, iteration_index)
-        return cell.dirty
+            active = cell.set_status_for_iteration(left_neighbour_status, iteration_index)
+            if active:
+                cell.set_dirty()
+        return active
 
 
 if __name__ == "__main__":
     rule = TestRule()
-    ca = CellularAutomaton([500, 500], MooreNeighborhood(EdgeRule.IGNORE_EDGE_CELLS), rule, thread_count=1)
+    ca = CellularAutomaton([10, 10], MooreNeighborhood(EdgeRule.IGNORE_EDGE_CELLS), rule, thread_count=2)
     ca_window = WorldGeneratorWindow([1000, 730], ca)
     ca_window.main_loop()
