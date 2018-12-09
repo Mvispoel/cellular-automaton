@@ -46,17 +46,16 @@ class CellularAutomaton:
             return False
 
     def _evolve_all_active_cells(self):
-        active_cells = self.grid.get_active_cell_names()
+        active_cells = self.grid.get_active_cells()
         self.grid.clear_active_cells()
-        self._evolve_cells(active_cells)
+        self._evolve_cells(active_cells.values())
 
     def _is_evolution_finished(self):
         return len(self.grid.get_active_cell_names()) == 0
 
-    def _evolve_cells(self, cell_names: list):
-        for cell_name in cell_names:
-            cell_info = self.grid.get_cell_and_neighbors(cell_name)
-            active = self.evolution_rule.evolve_cell(cell_info[0], cell_info[1], self.iteration)
+    def _evolve_cells(self, cells: list):
+        for cell in cells:
+            active = self.evolution_rule.evolve_cell(cell, cell.neighbours, self.iteration)
 
             if active:
-                self.grid.set_cells_active([cell_info[0]] + cell_info[1])
+                self.grid.set_cells_active([cell] + cell.neighbours)

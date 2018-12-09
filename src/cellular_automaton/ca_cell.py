@@ -20,3 +20,6 @@ class Cell:
 
     def release_from_redraw(self):
         self._dirty = False
+
+    def __str__(self):
+        return self.name

@@ -31,19 +31,11 @@ class Grid:
         :param cells:   A list of Cell objects, that shall be considered in the next evolution cycle.
         """
         for cell in cells:
-            self._active_cells[cell.name] = cells
+            self._active_cells[cell.name] = cell
 
     def get_cell_and_neighbors(self, cell_name):
         cell = self._cells[cell_name]
-        neighbours = cell.neighbours
-        neighbour_objects = []
-        for ne in neighbours:
-            neighbour_objects.append(self._cells[ne])
-
-        return [cell, neighbour_objects]
-
-    def get_cell_by_coordinate(self, coordinate):
-        return self._cells[_join_coordinate(coordinate)]
+        return [cell, cell.neighbours]
 
     def get_dimension(self):
         return self._dimension
@@ -76,20 +68,14 @@ class Grid:
             new_cod = coordinate + [cell_index]
             recursion_method(dimension_index + 1, new_cod)
 
-    def _set_cell_neighbours(self, dimension_index=0, coordinate=None):
-        """ Recursively steps down the dimensions to get the string instances for each cells neighbours.
-        :param dimension_index:     The index indicating which dimension is currently traversed.
-        :param coordinate:          The coordinate generated so far.
-                                    (each recursion adds one dimension to the coordinate.
-        """
-        coordinate = _instantiate_coordinate_if_necessary(coordinate)
+    def _set_cell_neighbours(self):
+        for cell in self._cells.values():
+            neighbours_coordinates = self._neighborhood.calculate_cell_neighbor_coordinates(cell.coordinate,
+                                                                                            self._dimension)
+            cell.set_neighbours(list(map(self._get_cell_by_coordinate, neighbours_coordinates)))
 
-        try:
-            self._recursive_step_down_dimensions(coordinate.copy(), dimension_index, self._set_cell_neighbours)
-        except IndexError:
-            neighbours_coordinates = self._neighborhood.calculate_cell_neighbor_coordinates(coordinate, self._dimension)
-            neighbour_names = [self._cells[_join_coordinate(nc)].name for nc in neighbours_coordinates]
-            self._cells[_join_coordinate(coordinate)].set_neighbours(neighbour_names)
+    def _get_cell_by_coordinate(self, coordinate):
+        return self._cells[_join_coordinate(coordinate)]
 
 
 def _instantiate_coordinate_if_necessary(coordinate):
