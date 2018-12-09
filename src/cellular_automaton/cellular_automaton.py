@@ -59,4 +59,4 @@ class CellularAutomaton:
             active = self.evolution_rule.evolve_cell(cell_info[0], cell_info[1], self.iteration)
 
             if active:
-                self.grid.set_cells_active(cell_info[0] + cell_info[1])
+                self.grid.set_cells_active([cell_info[0]] + cell_info[1])

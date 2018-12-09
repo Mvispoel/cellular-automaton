@@ -7,6 +7,8 @@ import time
 from cellular_automaton.cellular_automaton import CellularAutomaton
 from cellular_automaton.ca_rule import Rule
 from cellular_automaton.ca_neighborhood import MooreNeighborhood, EdgeRule
+from cellular_automaton.ca_display import PyGameFor2D
+from cellular_automaton.ca_cell_state import CellState
 
 
 class WorldGeneratorWindow:
@@ -17,7 +19,7 @@ class WorldGeneratorWindow:
 
         pygame.init()
         pygame.display.set_caption("World Generator")
-        self.screen = pygame.display.set_mode(self.grid_size)
+        self.screen = pygame.display.set_mode(self.window_size)
 
         self._cellular_automaton = cellular_automaton
         self.font = pygame.font.SysFont("monospace", 15)
@@ -78,25 +80,35 @@ class TestRule(Rule):
     def evolve_cell(self, cell, neighbors, iteration_index):
         active = False
         last_iteration = iteration_index - 1
-        if cell.get_status_for_iteration(last_iteration) is None:
+        if cell.state is None:
             rand = random.randrange(0, 101, 1)
             if rand <= 99:
-                rand = 0
-            cell.set_status_for_iteration([rand], iteration_index)
-            cell.set_status_for_iteration([rand], iteration_index + 1)
-            if rand != 0:
-                active = True
+                cell.state = MyStatus(0)
+            else:
+                cell.state = MyStatus(1)
                 cell.set_for_redraw()
+                active = True
         elif len(neighbors) == 8:
-            left_neighbour_status = neighbors[3].get_status_for_iteration(last_iteration)
-            active = cell.set_status_for_iteration(left_neighbour_status, iteration_index)
+            left_neighbour_status = neighbors[3].state.get_status_of_iteration(last_iteration)
+            active = cell.state.set_status_of_iteration(left_neighbour_status, iteration_index)
             if active:
                 cell.set_for_redraw()
         return active
 
 
+class MyStatus(CellState):
+    def __init__(self, initial_state):
+        super().__init__(initial_state)
+
+    def get_state_draw_color(self, iteration):
+        red = 0
+        if self._state[iteration % 2][0]:
+            red = 255
+        return [red, 0, 0]
+
+
 if __name__ == "__main__":
     rule = TestRule()
     ca = CellularAutomaton([400, 400], MooreNeighborhood(EdgeRule.IGNORE_EDGE_CELLS), rule)
-    ca_window = WorldGeneratorWindow([1000, 730], ca)
+    ca_window = PyGameFor2D([1000, 730], ca)
     ca_window.main_loop()
