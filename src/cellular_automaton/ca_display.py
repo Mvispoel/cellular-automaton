@@ -68,7 +68,7 @@ class PyGameFor2D:
 
         while running:
             time_ca_start = time.time()
-            self._cellular_automaton.evolve_x_times(1)
+            self._cellular_automaton.evolve_x_times(5)
             time_ca_end = time.time()
             self.ca_display._redraw_cellular_automaton()
             time_ds_end = time.time()

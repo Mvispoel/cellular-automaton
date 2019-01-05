@@ -21,7 +21,7 @@ class TestRule(Rule):
                 cell.set_for_redraw()
                 active = True
         elif len(neighbors) == 8:
-            left_neighbour_state = neighbors[3].state.get_status_of_iteration(iteration_index - 1)
+            left_neighbour_state = neighbors[0].state.get_status_of_iteration(iteration_index - 1)
             active = cell.state.set_status_of_iteration(left_neighbour_state, iteration_index)
             if active:
                 cell.set_for_redraw()
@@ -42,6 +42,6 @@ class MyStatus(CellState):
 if __name__ == "__main__":
     random.seed(1000)
     rule = TestRule()
-    ca = CellularAutomaton([500, 500], MooreNeighborhood(EdgeRule.IGNORE_EDGE_CELLS), rule)
-    ca_window = PyGameFor2D([1000, 730], ca)
+    ca = CellularAutomaton([400, 400], MooreNeighborhood(EdgeRule.FIRST_AND_LAST_CELL_OF_DIMENSION_ARE_NEIGHBORS), rule)
+    ca_window = PyGameFor2D([1000, 800], ca)
     ca_window.main_loop()
