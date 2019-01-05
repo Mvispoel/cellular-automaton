@@ -6,11 +6,13 @@ class Grid:
     def __init__(self, dimension: list, neighborhood: Neighborhood):
         self._dimension = dimension
         self._cells = {}
-        self._neighborhood = neighborhood
+        self._active_cells = {}
 
+        self._init_cells(neighborhood)
+
+    def _init_cells(self, neighborhood):
         self._create_cells()
-        self._set_cell_neighbours()
-
+        self._set_cell_neighbours(neighborhood)
         self._active_cells = self._cells.copy()
         self._set_all_cells_active()
 
@@ -68,10 +70,10 @@ class Grid:
             new_cod = coordinate + [cell_index]
             recursion_method(dimension_index + 1, new_cod)
 
-    def _set_cell_neighbours(self):
+    def _set_cell_neighbours(self, neighborhood):
         for cell in self._cells.values():
-            neighbours_coordinates = self._neighborhood.calculate_cell_neighbor_coordinates(cell.coordinate,
-                                                                                            self._dimension)
+            neighbours_coordinates = neighborhood.calculate_cell_neighbor_coordinates(cell.coordinate,
+                                                                                      self._dimension)
             cell.neighbours = list(map(self._get_cell_by_coordinate, neighbours_coordinates))
 
     def _get_cell_by_coordinate(self, coordinate):

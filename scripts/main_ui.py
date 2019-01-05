@@ -2,11 +2,12 @@
 
 import random
 
-from cellular_automaton.cellular_automaton import CellularAutomaton
+from cellular_automaton.cellular_automaton import CellularAutomaton, CellularAutomatonEvolver
 from cellular_automaton.ca_rule import Rule
 from cellular_automaton.ca_neighborhood import MooreNeighborhood, EdgeRule
 from cellular_automaton.ca_display import PyGameFor2D
 from cellular_automaton.ca_cell_state import CellState
+from cellular_automaton.ca_grid import Grid
 
 
 class TestRule(Rule):
@@ -43,6 +44,8 @@ class MyStatus(CellState):
 if __name__ == "__main__":
     random.seed(1000)
     rule = TestRule()
-    ca = CellularAutomaton([400, 400], MooreNeighborhood(EdgeRule.FIRST_AND_LAST_CELL_OF_DIMENSION_ARE_NEIGHBORS), rule)
-    ca_window = PyGameFor2D([1000, 800], ca, 5)
+    ca = CellularAutomaton(Grid([400, 400], MooreNeighborhood(EdgeRule.FIRST_AND_LAST_CELL_OF_DIMENSION_ARE_NEIGHBORS)),
+                           rule)
+    ca_evolver = CellularAutomatonEvolver(2)
+    ca_window = PyGameFor2D([1000, 800], ca, ca_evolver, 5)
     ca_window.main_loop()

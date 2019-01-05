@@ -2,49 +2,45 @@ import pygame
 import time
 import operator
 
-from cellular_automaton.cellular_automaton import CellularAutomaton
+from cellular_automaton.cellular_automaton import CellularAutomaton, CellularAutomatonEvolver
+
+
+class _DisplayInfo:
+    def __init__(self, grid_size, grid_pos, cell_size, screen):
+        self.grid_size = grid_size
+        self.grid_pos = grid_pos
+        self.cell_size = cell_size
+        self.screen = screen
 
 
 class DisplayFor2D:
     def __init__(self, grid_rect: list, cellular_automaton: CellularAutomaton, screen):
-        self.grid_size = grid_rect[-2:]
-        self.grid_pos = grid_rect[:2]
         self._cellular_automaton = cellular_automaton
-        self.screen = screen
-
-        self.cell_size = self._calculate_cell_display_size()
-
-        self._surfaces_to_update = []
+        cell_size = self._calculate_cell_display_size(grid_rect[-2:])
+        self._display_info = _DisplayInfo(grid_rect[-2:], grid_rect[:2], cell_size, screen)
 
     def set_cellular_automaton(self, cellular_automaton):
         self._cellular_automaton = cellular_automaton
 
     def _redraw_cellular_automaton(self):
-        for cell in self._cellular_automaton.grid.get_cells().values():
-            self._redraw_cell(cell)
-        pygame.display.update(self._surfaces_to_update)
-        self._surfaces_to_update = []
+        pygame.display.update(list(_cell_redraw_rectangles(self._cellular_automaton.grid.get_cells().values(),
+                                                           self._cellular_automaton.evolution_iteration_index,
+                                                           self._display_info)))
 
-    def _redraw_cell(self, cell):
-        if cell.is_set_for_redraw:
-            cell_color = cell.state.get_state_draw_color(self._cellular_automaton.get_iteration_index())
-            surface_pos = self._calculate_cell_position(cell)
-            surface_pos = list(map(operator.add, surface_pos, self.grid_pos))
-            self._surfaces_to_update.append(self.screen.fill(cell_color, (surface_pos, self.cell_size)))
-            cell.is_set_for_redraw = False
-
-    def _calculate_cell_position(self, cell):
-        return list(map(operator.mul, self.cell_size, cell.coordinate))
-
-    def _calculate_cell_display_size(self):
+    def _calculate_cell_display_size(self, grid_size):
         grid_dimension = self._cellular_automaton.grid.get_dimension()
-        return list(map(operator.truediv, self.grid_size, grid_dimension))
+        return list(map(operator.truediv, grid_size, grid_dimension))
 
 
 class PyGameFor2D:
-    def __init__(self, windows_size: list, cellular_automaton: CellularAutomaton, ca_iterations_per_draw):
+    def __init__(self,
+                 windows_size: list,
+                 cellular_automaton: CellularAutomaton,
+                 cellular_automaton_evolver: CellularAutomatonEvolver,
+                 ca_iterations_per_draw):
         self._window_size = windows_size
         self._cellular_automaton = cellular_automaton
+        self._cellular_automaton_evolver = cellular_automaton_evolver
         self._ca_steps_per_draw = ca_iterations_per_draw
 
         pygame.init()
@@ -69,7 +65,7 @@ class PyGameFor2D:
 
         while running:
             time_ca_start = time.time()
-            self._cellular_automaton.evolve_x_times(self._ca_steps_per_draw)
+            self._cellular_automaton_evolver.evolve_x_times(self._cellular_automaton, self._ca_steps_per_draw)
             time_ca_end = time.time()
             self.ca_display._redraw_cellular_automaton()
             time_ds_end = time.time()
@@ -79,3 +75,16 @@ class PyGameFor2D:
                 if event.type == pygame.QUIT:
                     running = False
 
+
+def _cell_redraw_rectangles(cells, evolution_index, display_info):
+    for cell in cells:
+        if cell.is_set_for_redraw:
+            cell_color = cell.state.get_state_draw_color(evolution_index)
+            cell_pos = _calculate_cell_position(display_info.cell_size, cell)
+            surface_pos = list(map(operator.add, cell_pos, display_info.grid_pos))
+            yield display_info.screen.fill(cell_color, (surface_pos, display_info.cell_size))
+            cell.is_set_for_redraw = False
+
+
+def _calculate_cell_position(cell_size, cell):
+    return list(map(operator.mul, cell_size, cell.coordinate))
