@@ -35,7 +35,7 @@ class MyStatus(CellState):
 
     def get_state_draw_color(self, iteration):
         red = 0
-        if self._state[iteration % 2][0]:
+        if self._state_slots[iteration % 2][0]:
             red = 255
         return [red, 0, 0]
 
