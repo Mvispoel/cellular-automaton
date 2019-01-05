@@ -26,12 +26,12 @@ class DisplayFor2D:
         self._surfaces_to_update = []
 
     def _redraw_cell(self, cell):
-        if cell.is_set_for_redrawing():
+        if cell.is_set_for_redraw:
             cell_color = cell.state.get_state_draw_color(self._cellular_automaton.get_iteration_index())
             surface_pos = self._calculate_cell_position(cell)
             surface_pos = list(map(operator.add, surface_pos, self.grid_pos))
             self._surfaces_to_update.append(self.screen.fill(cell_color, (surface_pos, self.cell_size)))
-            cell.release_from_redraw()
+            cell.is_set_for_redraw = False
 
     def _calculate_cell_position(self, cell):
         return list(map(operator.mul, self.cell_size, cell.coordinate))
@@ -42,25 +42,26 @@ class DisplayFor2D:
 
 
 class PyGameFor2D:
-    def __init__(self, windows_size: list, cellular_automaton: CellularAutomaton):
-        self.window_size = windows_size
+    def __init__(self, windows_size: list, cellular_automaton: CellularAutomaton, ca_iterations_per_draw):
+        self._window_size = windows_size
         self._cellular_automaton = cellular_automaton
+        self._ca_steps_per_draw = ca_iterations_per_draw
 
         pygame.init()
         pygame.display.set_caption("Cellular Automaton")
-        self.screen = pygame.display.set_mode(self.window_size)
-        self.font = pygame.font.SysFont("monospace", 15)
+        self._screen = pygame.display.set_mode(self._window_size)
+        self._font = pygame.font.SysFont("monospace", 15)
 
-        self.ca_display = DisplayFor2D([0, 30, windows_size[0], windows_size[1]-30], cellular_automaton, self.screen)
+        self.ca_display = DisplayFor2D([0, 30, windows_size[0], windows_size[1]-30], cellular_automaton, self._screen)
 
     def _print_process_duration(self, time_ca_end, time_ca_start, time_ds_end):
-        self.screen.fill([0, 0, 0], ((0, 0), (self.window_size[0], 30)))
+        self._screen.fill([0, 0, 0], ((0, 0), (self._window_size[0], 30)))
         self._write_text((10, 5), "CA: " + "{0:.4f}".format(time_ca_end - time_ca_start) + "s")
         self._write_text((310, 5), "Display: " + "{0:.4f}".format(time_ds_end - time_ca_end) + "s")
 
     def _write_text(self, pos, text, color=(0, 255, 0)):
-        label = self.font.render(text, 1, color)
-        update_rect = self.screen.blit(label, pos)
+        label = self._font.render(text, 1, color)
+        update_rect = self._screen.blit(label, pos)
         pygame.display.update(update_rect)
 
     def main_loop(self):
@@ -68,7 +69,7 @@ class PyGameFor2D:
 
         while running:
             time_ca_start = time.time()
-            self._cellular_automaton.evolve_x_times(5)
+            self._cellular_automaton.evolve_x_times(self._ca_steps_per_draw)
             time_ca_end = time.time()
             self.ca_display._redraw_cellular_automaton()
             time_ds_end = time.time()

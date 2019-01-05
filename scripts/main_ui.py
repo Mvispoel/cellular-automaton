@@ -10,21 +10,22 @@ from cellular_automaton.ca_cell_state import CellState
 
 
 class TestRule(Rule):
-    def evolve_cell(self, cell, neighbors, iteration_index):
+    def evolve_cell(self, cell, iteration_index):
         active = False
+        neighbors = cell.neighbours
         if cell.state is None:
             rand = random.randrange(0, 101, 1)
             if rand <= 99:
                 cell.state = MyStatus(0)
             else:
                 cell.state = MyStatus(1)
-                cell.set_for_redraw()
+                cell.is_set_for_redraw = True
                 active = True
         elif len(neighbors) == 8:
             left_neighbour_state = neighbors[0].state.get_status_of_iteration(iteration_index - 1)
             active = cell.state.set_status_of_iteration(left_neighbour_state, iteration_index)
             if active:
-                cell.set_for_redraw()
+                cell.is_set_for_redraw = True
         return active
 
 
@@ -43,5 +44,5 @@ if __name__ == "__main__":
     random.seed(1000)
     rule = TestRule()
     ca = CellularAutomaton([400, 400], MooreNeighborhood(EdgeRule.FIRST_AND_LAST_CELL_OF_DIMENSION_ARE_NEIGHBORS), rule)
-    ca_window = PyGameFor2D([1000, 800], ca)
+    ca_window = PyGameFor2D([1000, 800], ca, 5)
     ca_window.main_loop()

@@ -72,7 +72,7 @@ class Grid:
         for cell in self._cells.values():
             neighbours_coordinates = self._neighborhood.calculate_cell_neighbor_coordinates(cell.coordinate,
                                                                                             self._dimension)
-            cell.set_neighbours(list(map(self._get_cell_by_coordinate, neighbours_coordinates)))
+            cell.neighbours = list(map(self._get_cell_by_coordinate, neighbours_coordinates))
 
     def _get_cell_by_coordinate(self, coordinate):
         return self._cells[_join_coordinate(coordinate)]

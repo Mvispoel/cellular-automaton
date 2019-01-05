@@ -55,7 +55,7 @@ class CellularAutomaton:
 
     def _evolve_cells(self, cells: list):
         for cell in cells:
-            active = self.evolution_rule.evolve_cell(cell, cell.neighbours, self.iteration)
+            active = self.evolution_rule.evolve_cell(cell, self.iteration)
 
             if active:
                 self.grid.set_cells_active([cell] + cell.neighbours)
