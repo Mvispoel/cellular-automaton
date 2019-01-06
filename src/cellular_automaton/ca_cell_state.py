@@ -30,3 +30,6 @@ class CellState:
 
     def get_state_draw_color(self, iteration):
         raise NotImplementedError
+
+    def __str__(self):
+        return str(self._state_slots)

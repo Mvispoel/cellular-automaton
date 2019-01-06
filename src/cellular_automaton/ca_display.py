@@ -2,7 +2,7 @@ import pygame
 import time
 import operator
 
-from cellular_automaton.cellular_automaton import CellularAutomaton, CellularAutomatonEvolver
+from cellular_automaton.cellular_automaton import CellularAutomaton, CellularAutomatonProcessor
 
 
 class _DisplayInfo:
@@ -33,22 +33,16 @@ class DisplayFor2D:
 
 
 class PyGameFor2D:
-    def __init__(self,
-                 windows_size: list,
-                 cellular_automaton: CellularAutomaton,
-                 cellular_automaton_evolver: CellularAutomatonEvolver,
-                 ca_iterations_per_draw):
-        self._window_size = windows_size
+    def __init__(self, window_size: list, cellular_automaton: CellularAutomaton):
+        self._window_size = window_size
         self._cellular_automaton = cellular_automaton
-        self._cellular_automaton_evolver = cellular_automaton_evolver
-        self._ca_steps_per_draw = ca_iterations_per_draw
 
         pygame.init()
         pygame.display.set_caption("Cellular Automaton")
         self._screen = pygame.display.set_mode(self._window_size)
         self._font = pygame.font.SysFont("monospace", 15)
 
-        self.ca_display = DisplayFor2D([0, 30, windows_size[0], windows_size[1]-30], cellular_automaton, self._screen)
+        self.ca_display = DisplayFor2D([0, 30, window_size[0], window_size[1] - 30], cellular_automaton, self._screen)
 
     def _print_process_duration(self, time_ca_end, time_ca_start, time_ds_end):
         self._screen.fill([0, 0, 0], ((0, 0), (self._window_size[0], 30)))
@@ -60,12 +54,12 @@ class PyGameFor2D:
         update_rect = self._screen.blit(label, pos)
         pygame.display.update(update_rect)
 
-    def main_loop(self):
+    def main_loop(self, cellular_automaton_processor: CellularAutomatonProcessor, ca_iterations_per_draw):
         running = True
 
         while running:
             time_ca_start = time.time()
-            self._cellular_automaton_evolver.evolve_x_times(self._cellular_automaton, self._ca_steps_per_draw)
+            cellular_automaton_processor.evolve_x_times(self._cellular_automaton, ca_iterations_per_draw)
             time_ca_end = time.time()
             self.ca_display._redraw_cellular_automaton()
             time_ds_end = time.time()
