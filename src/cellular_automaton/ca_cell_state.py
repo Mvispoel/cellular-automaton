@@ -5,7 +5,7 @@ class CellState:
     """
     def __init__(self, initial_state, state_save_slot_count=2):
         self._state_save_slot_count = state_save_slot_count
-        self._state_slots = [[initial_state]] * state_save_slot_count
+        self._state_slots = [initial_state] * state_save_slot_count
 
     def set_status_of_iteration(self, new_status, iteration):
         """ Will set the new status for the iteration modulo number of saved states.
