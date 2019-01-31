@@ -32,7 +32,7 @@ class TestRule(Rule):
 
 class MyStatus(CellState):
     def __init__(self, initial_state):
-        super().__init__(initial_state)
+        super().__init__([initial_state])
 
     def get_state_draw_color(self, iteration):
         red = 0
