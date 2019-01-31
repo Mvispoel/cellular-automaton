@@ -59,25 +59,27 @@ class PyGameFor2D:
 
         while running:
             time_ca_start = time.time()
-            cellular_automaton_processor.evolve_x_times(self._cellular_automaton, ca_iterations_per_draw)
             time_ca_end = time.time()
             self.ca_display._redraw_cellular_automaton()
             time_ds_end = time.time()
             self._print_process_duration(time_ca_end, time_ca_start, time_ds_end)
 
+            time.sleep(0.5)
+
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
+                    cellular_automaton_processor.stop()
                     running = False
 
 
 def _cell_redraw_rectangles(cells, evolution_index, display_info):
     for cell in cells:
-        if cell.is_set_for_redraw:
+        if cell.state.is_set_for_redraw():
             cell_color = cell.state.get_state_draw_color(evolution_index)
             cell_pos = _calculate_cell_position(display_info.cell_size, cell)
             surface_pos = list(map(operator.add, cell_pos, display_info.grid_pos))
             yield display_info.screen.fill(cell_color, (surface_pos, display_info.cell_size))
-            cell.is_set_for_redraw = False
+            cell.state.was_redrawn()
 
 
 def _calculate_cell_position(cell_size, cell):

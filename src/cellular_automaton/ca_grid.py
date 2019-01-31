@@ -3,10 +3,11 @@ from cellular_automaton.ca_neighborhood import Neighborhood
 
 
 class Grid:
-    def __init__(self, dimension: list, neighborhood: Neighborhood):
+    def __init__(self, dimension: list, neighborhood: Neighborhood, state_class):
         self._dimension = dimension
         self._cells = {}
         self._active_cells = {}
+        self._state_class = state_class
 
         self._init_cells(neighborhood)
 
@@ -58,7 +59,7 @@ class Grid:
             self._recursive_step_down_dimensions(coordinate, dimension_index, self._create_cells)
         except IndexError:
             coordinate_string = _join_coordinate(coordinate)
-            self._cells[coordinate_string] = Cell(coordinate_string, coordinate)
+            self._cells[coordinate_string] = Cell(coordinate_string, self._state_class, coordinate)
 
     def _recursive_step_down_dimensions(self, coordinate, dimension_index, recursion_method):
         """ For the range of the current dimension, recalls the recursion method.
@@ -72,9 +73,9 @@ class Grid:
 
     def _set_cell_neighbours(self, neighborhood):
         for cell in self._cells.values():
-            neighbours_coordinates = neighborhood.calculate_cell_neighbor_coordinates(cell.coordinate,
+            neighbours_coordinates = neighborhood.calculate_cell_neighbor_coordinates(cell.get_coordinate(),
                                                                                       self._dimension)
-            cell.neighbours = list(map(self._get_cell_by_coordinate, neighbours_coordinates))
+            cell.set_neighbours(list(map(self._get_cell_by_coordinate, neighbours_coordinates)))
 
     def _get_cell_by_coordinate(self, coordinate):
         return self._cells[_join_coordinate(coordinate)]
