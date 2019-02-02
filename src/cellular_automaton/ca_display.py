@@ -74,13 +74,13 @@ class PyGameFor2D:
 
 def _cell_redraw_rectangles(cells, evolution_index, display_info):
     for cell in cells:
-        if cell.state.is_set_for_redraw():
-            cell_color = cell.state.get_state_draw_color(evolution_index)
+        if cell.get_state().is_set_for_redraw():
+            cell_color = cell.get_state().get_state_draw_color(evolution_index)
             cell_pos = _calculate_cell_position(display_info.cell_size, cell)
             surface_pos = list(map(operator.add, cell_pos, display_info.grid_pos))
             yield display_info.screen.fill(cell_color, (surface_pos, display_info.cell_size))
-            cell.state.was_redrawn()
+            cell.get_state().was_redrawn()
 
 
 def _calculate_cell_position(cell_size, cell):
-    return list(map(operator.mul, cell_size, cell.coordinate))
+    return list(map(operator.mul, cell_size, cell.get_coordinate()))

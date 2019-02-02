@@ -35,5 +35,5 @@ class CellularAutomatonProcessor:
 def _process_routine(cells, rule, active):
     while active.value == 1:
         for cell in cells:
-            cell.evolve_if_ready(rule)
+            cell.evolve_if_ready(rule.evolve_cell)
 

@@ -10,6 +10,7 @@ class TestRule(Rule):
         try:
             return last_neighbour_states[0]
         except IndexError:
+            print("damn neighbours")
             pass
         return False
 
@@ -21,7 +22,7 @@ class MyState(CellState):
         if rand > 99:
             init = 1
 
-        super().__init__(init, draw_first_state=False)
+        super().__init__((float(init),), draw_first_state=False)
 
     def get_state_draw_color(self, iteration):
         red = 0
@@ -41,7 +42,7 @@ if __name__ == "__main__":
     freeze_support()
     random.seed(1000)
     rule = TestRule()
-    grid = Grid(dimension=[400, 400],
+    grid = Grid(dimension=[200, 200],  # best is 400/400 with 0,2 ca speed and 0,09 redraw
                 neighborhood=MooreNeighborhood(EdgeRule.FIRST_AND_LAST_CELL_OF_DIMENSION_ARE_NEIGHBORS),
                 state_class=MyState)
     ca = CellularAutomaton(grid, rule)
