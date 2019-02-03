@@ -17,9 +17,6 @@ class Neighborhood:
         self.edge_rule = edge_rule
         self.grid_dimensions = []
 
-    def get_relative_neighbor_coordinates(self):
-        return self._neighbors
-
     def calculate_cell_neighbor_coordinates(self, cell_coordinate, grid_dimensions):
         """ Get a list of coordinates for the cell neighbors. The EdgeRule can reduce the returned neighbor count.
         :param cell_coordinate:     The coordinate of the cell to get the neighbors

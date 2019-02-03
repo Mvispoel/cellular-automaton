@@ -1,0 +1,11 @@
+# With 100x100 10 times
+
+Try One
+TOTAL TIME: 0.1217s
+SIZE: 21.7525MB
+
+TOTAL TIME: 0.1171s   	# Only set on change
+SIZE: 21.7525MB			# process size 51,4 / main(75,9)
+
+TOTAL TIME: 0.1161s
+SIZE: 20.3338MB         # removed grid

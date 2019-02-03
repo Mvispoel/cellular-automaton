@@ -2,6 +2,11 @@ import pygame
 import time
 import operator
 
+import cProfile
+import pstats
+from pympler import asizeof
+
+
 from cellular_automaton.cellular_automaton import CellularAutomaton, CellularAutomatonProcessor
 
 
@@ -19,16 +24,13 @@ class DisplayFor2D:
         cell_size = self._calculate_cell_display_size(grid_rect[-2:])
         self._display_info = _DisplayInfo(grid_rect[-2:], grid_rect[:2], cell_size, screen)
 
-    def set_cellular_automaton(self, cellular_automaton):
-        self._cellular_automaton = cellular_automaton
-
-    def _redraw_cellular_automaton(self):
-        pygame.display.update(list(_cell_redraw_rectangles(self._cellular_automaton.grid.get_cells().values(),
-                                                           self._cellular_automaton.evolution_iteration_index,
+    def redraw_cellular_automaton(self):
+        pygame.display.update(list(_cell_redraw_rectangles(self._cellular_automaton.cells,
+                                                           0,
                                                            self._display_info)))
 
     def _calculate_cell_display_size(self, grid_size):
-        grid_dimension = self._cellular_automaton.grid.get_dimension()
+        grid_dimension = self._cellular_automaton.dimension
         return list(map(operator.truediv, grid_size, grid_dimension))
 
 
@@ -36,7 +38,7 @@ class PyGameFor2D:
     def __init__(self, window_size: list, cellular_automaton: CellularAutomaton):
         self._window_size = window_size
         self._cellular_automaton = cellular_automaton
-
+        self._cellular_automaton_proocessor = None
         pygame.init()
         pygame.display.set_caption("Cellular Automaton")
         self._screen = pygame.display.set_mode(self._window_size)
@@ -56,20 +58,34 @@ class PyGameFor2D:
 
     def main_loop(self, cellular_automaton_processor: CellularAutomatonProcessor, ca_iterations_per_draw):
         running = True
-
+        cellular_automaton_processor.evolve()
+        first = True
         while running:
+            pygame.event.get()
             time_ca_start = time.time()
+            if first:
+                self._evolve_with_performance(cellular_automaton_processor, time_ca_start)
+                first = False
+            else:
+                cellular_automaton_processor.evolve()
             time_ca_end = time.time()
-            self.ca_display._redraw_cellular_automaton()
+            self.ca_display.redraw_cellular_automaton()
             time_ds_end = time.time()
             self._print_process_duration(time_ca_end, time_ca_start, time_ds_end)
 
-            time.sleep(0.5)
-
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    cellular_automaton_processor.stop()
-                    running = False
+    def _evolve_with_performance(self, cap, time_ca_start):
+        size = asizeof.asizeof(self._cellular_automaton)
+        cProfile.runctx("cap.evolve_x_times(10)", None, locals(), "performance_test")
+        print("PERFORMANCE")
+        p = pstats.Stats('performance_test2')
+        p.strip_dirs()
+        # sort by cumulative time in a function
+        p.sort_stats('cumulative').print_stats(10)
+        # sort by time spent in a function
+        p.sort_stats('time').print_stats(10)
+        time_ca_end = time.time()
+        print("TOTAL TIME: " + "{0:.4f}".format(time_ca_end - time_ca_start) + "s")
+        print("SIZE: " + "{0:.4f}".format(size / (1024 * 1024)) + "MB")
 
 
 def _cell_redraw_rectangles(cells, evolution_index, display_info):

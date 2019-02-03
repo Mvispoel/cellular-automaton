@@ -1,4 +1,5 @@
-from multiprocessing import Array, Value
+from multiprocessing import RawArray, RawValue
+from ctypes import c_float, c_bool
 
 
 class CellState:
@@ -8,45 +9,35 @@ class CellState:
         When using the cellular automaton display, inherit this class and implement get_state_draw_color.
     """
     def __init__(self, initial_state=(0., ), draw_first_state=True):
-        self._state_slots = [Array('d', initial_state) for i in range(self.__class__._state_save_slot_count)]
-        self._active = Value('i', 1)
-        self._age = Value('i', 0)
+        self._state_slots = [RawArray(c_float, initial_state) for i in range(self.__class__._state_save_slot_count)]
+        self._active = [RawValue(c_bool, False) for i in range(self.__class__._state_save_slot_count)]
+        self._active[0].value = True
         if draw_first_state:
-            self._dirty = Value('i', 1)
+            self._dirty = RawValue(c_bool, True)
         else:
-            self._dirty = Value('i', 0)
-
-    def get_age(self):
-        return self._age.value
-
-    def get_current_state(self):
-        return self.get_state_of_iteration(self.get_age())
+            self._dirty = RawValue(c_bool, False)
 
     def get_state_of_iteration(self, iteration):
         """ Will return the state for the iteration modulo number of saved states.
         :param iteration:   Uses the iteration index, to differ between concurrent states.
         :return The state for this iteration.
         """
-        return self._state_slots[iteration % self.__class__._state_save_slot_count]
+        return self._state_slots[self.__calculate_slot(iteration)]
 
-    def is_active(self):
-        return self._active.value > self._age.value
+    def __calculate_slot(self, iteration):
+        return iteration % self.__class__._state_save_slot_count
+
+    def is_active(self, iteration):
+        return self._active[self.__calculate_slot(iteration)]
 
     def set_active_for_next_iteration(self, iteration):
-        self._active.value = max(self._active.value, iteration + 1)
-
-    def increase_age(self):
-        with self._age.get_lock():
-            self._age.value += 1
+        self._active[self.__calculate_slot(iteration + 1)].value = True
 
     def is_set_for_redraw(self):
-        return self._dirty != 1
+        return self._dirty.value
 
     def was_redrawn(self):
-        self._dirty = 0
-
-    def set_current_state(self, new_state):
-        return self.set_state_of_iteration(new_state, self.get_age() + 1)
+        self._dirty.value = False
 
     def get_state_of_last_iteration(self, current_iteration_index):
         return self.get_state_of_iteration(current_iteration_index - 1)
@@ -65,16 +56,13 @@ class CellState:
             try:
                 if current_state[i] != new_state[i]:
                     changed = True
-
-                current_state[i] = new_state[i]
+                    current_state[i] = new_state[i]
             except IndexError:
                 raise IndexError("New State length or type is invalid!")
 
         self._dirty.value |= changed
+        self._active[self.__calculate_slot(iteration)].value = False
         return changed
 
     def get_state_draw_color(self, iteration):
         raise NotImplementedError
-
-    def __str__(self):
-        return str(self._state_slots)

@@ -39,14 +39,16 @@ if __name__ == "__main__":
     from cellular_automaton.ca_neighborhood import MooreNeighborhood, EdgeRule
     from cellular_automaton.ca_display import PyGameFor2D
     from cellular_automaton.ca_grid import Grid
+
     freeze_support()
     random.seed(1000)
+    dimension = [100, 100]
     rule = TestRule()
-    grid = Grid(dimension=[200, 200],  # best is 400/400 with 0,2 ca speed and 0,09 redraw
+    grid = Grid(dimension=dimension,  # best is 400/400 with 0,2 ca speed and 0,09 redraw
                 neighborhood=MooreNeighborhood(EdgeRule.FIRST_AND_LAST_CELL_OF_DIMENSION_ARE_NEIGHBORS),
                 state_class=MyState)
-    ca = CellularAutomaton(grid, rule)
+    ca = CellularAutomaton(tuple(grid.get_cells().values()), dimension, rule)
     ca_window = PyGameFor2D(window_size=[1000, 800], cellular_automaton=ca)
-    ca_processor = CellularAutomatonProcessor(process_count=2, cellular_automaton=ca)
+    ca_processor = CellularAutomatonProcessor(process_count=4, cellular_automaton=ca)
     ca_window.main_loop(cellular_automaton_processor=ca_processor,
                         ca_iterations_per_draw=5)
