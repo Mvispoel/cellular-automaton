@@ -77,7 +77,7 @@ class PyGameFor2D:
         size = asizeof.asizeof(self._cellular_automaton)
         cProfile.runctx("cap.evolve_x_times(10)", None, locals(), "performance_test")
         print("PERFORMANCE")
-        p = pstats.Stats('performance_test2')
+        p = pstats.Stats('performance_test')
         p.strip_dirs()
         # sort by cumulative time in a function
         p.sort_stats('cumulative').print_stats(10)
