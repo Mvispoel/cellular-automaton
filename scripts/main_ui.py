@@ -4,7 +4,7 @@ from cellular_automaton.ca_cell_state import CellState
 from cellular_automaton.ca_rule import Rule
 
 from cellular_automaton.cellular_automaton import CellularAutomaton, CellularAutomatonProcessor
-from cellular_automaton.ca_factory import Factory
+from cellular_automaton.ca_factory import CAFactory
 
 
 class TestRule(Rule):
@@ -35,8 +35,7 @@ class MyState(CellState):
 
 
 def make_cellular_automaton(dimension, neighborhood, rule, state_class):
-    ca_factory = Factory()
-    cells = ca_factory.make_cellular_automaton(dimension=dimension, neighborhood=neighborhood, state_class=state_class)
+    cells = CAFactory.make_cellular_automaton(dimension=dimension, neighborhood=neighborhood, state_class=state_class)
     return CellularAutomaton(cells, dimension, rule)
 
 

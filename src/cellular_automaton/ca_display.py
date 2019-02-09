@@ -60,11 +60,12 @@ class PyGameFor2D:
         running = True
         cellular_automaton_processor.evolve()
         first = True
+
         while running:
             pygame.event.get()
             time_ca_start = time.time()
             if first:
-                self._evolve_with_performance(cellular_automaton_processor, time_ca_start)
+                self._evolve_with_performance(cellular_automaton_processor)
                 first = False
             else:
                 cellular_automaton_processor.evolve()
@@ -73,9 +74,11 @@ class PyGameFor2D:
             time_ds_end = time.time()
             self._print_process_duration(time_ca_end, time_ca_start, time_ds_end)
 
-    def _evolve_with_performance(self, cap, time_ca_start):
+    def _evolve_with_performance(self, cap):
         size = asizeof.asizeof(self._cellular_automaton)
+        time_ca_start = time.time()
         cProfile.runctx("cap.evolve_x_times(10)", None, locals(), "performance_test")
+        time_ca_end = time.time()
         print("PERFORMANCE")
         p = pstats.Stats('performance_test')
         p.strip_dirs()
@@ -83,7 +86,6 @@ class PyGameFor2D:
         p.sort_stats('cumulative').print_stats(10)
         # sort by time spent in a function
         p.sort_stats('time').print_stats(10)
-        time_ca_end = time.time()
         print("TOTAL TIME: " + "{0:.4f}".format(time_ca_end - time_ca_start) + "s")
         print("SIZE: " + "{0:.4f}".format(size / (1024 * 1024)) + "MB")
 

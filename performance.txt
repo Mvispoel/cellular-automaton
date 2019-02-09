@@ -9,3 +9,9 @@ SIZE: 21.7525MB			# process size 51,4 / main(75,9)
 
 TOTAL TIME: 0.1161s
 SIZE: 20.3338MB         # removed grid
+
+TOTAL TIME: 0.1792s 	# probably wrong calculated (asizeof was in there)
+SIZE: 20.2575MB			# Factory instead of grid
+
+TOTAL TIME: 0.1152s		# dict instead of list for cells
+SIZE: 20.2575MB			# process size 53 / 75,8

@@ -14,10 +14,11 @@ class CellularAutomaton:
 class CellularAutomatonProcessor:
     def __init__(self, cellular_automaton, process_count: int = 1):
         self.ca = cellular_automaton
+        cells = {i: self.ca.cells[i] for i in range(len(self.ca.cells))}
         self.evolve_range = range(len(self.ca.cells))
         self.pool = multiprocessing.Pool(processes=process_count,
                                          initializer=_init_process,
-                                         initargs=(self.ca.cells,
+                                         initargs=(cells,
                                                    self.ca.evolution_rule,
                                                    self.ca.evolution_iteration_index))
         for cell in self.ca.cells:

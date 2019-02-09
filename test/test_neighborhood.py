@@ -5,8 +5,9 @@ import cellular_automaton.ca_neighborhood as csn
 import unittest
 
 
-class TestCellState(unittest.TestCase):
-    def check_neighbors(self, neighborhood, neighborhood_sets):
+class TestNeighborhood(unittest.TestCase):
+    @staticmethod
+    def check_neighbors(neighborhood, neighborhood_sets):
         for neighborhood_set in neighborhood_sets:
             neighbors = neighborhood.calculate_cell_neighbor_coordinates(neighborhood_set[0], [3, 3])
             if neighborhood_set[1] != neighbors:
