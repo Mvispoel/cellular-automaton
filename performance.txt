@@ -15,3 +15,6 @@ SIZE: 20.2575MB			# Factory instead of grid
 
 TOTAL TIME: 0.1152s		# dict instead of list for cells
 SIZE: 20.2575MB			# process size 53 / 75,8
+
+TOTAL TIME: 0.1135s		# evolve is static
+SIZE: 20.2575MB			# process size 50.8 / 76 (no more cell objects in processes)

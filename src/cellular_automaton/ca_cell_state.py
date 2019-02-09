@@ -17,16 +17,6 @@ class CellState:
         else:
             self._dirty = RawValue(c_bool, False)
 
-    def get_state_of_iteration(self, iteration):
-        """ Will return the state for the iteration modulo number of saved states.
-        :param iteration:   Uses the iteration index, to differ between concurrent states.
-        :return The state for this iteration.
-        """
-        return self._state_slots[self.__calculate_slot(iteration)]
-
-    def __calculate_slot(self, iteration):
-        return iteration % self.__class__._state_save_slot_count
-
     def is_active(self, iteration):
         return self._active[self.__calculate_slot(iteration)]
 
@@ -41,6 +31,13 @@ class CellState:
 
     def get_state_of_last_iteration(self, current_iteration_index):
         return self.get_state_of_iteration(current_iteration_index - 1)
+
+    def get_state_of_iteration(self, iteration):
+        """ Will return the state for the iteration modulo number of saved states.
+        :param iteration:   Uses the iteration index, to differ between concurrent states.
+        :return The state for this iteration.
+        """
+        return self._state_slots[self.__calculate_slot(iteration)]
 
     def set_state_of_iteration(self, new_state, iteration):
         """ Will set the new state for the iteration modulo number of saved states.
@@ -66,3 +63,7 @@ class CellState:
 
     def get_state_draw_color(self, iteration):
         raise NotImplementedError
+
+    @classmethod
+    def __calculate_slot(cls, iteration):
+        return iteration % cls._state_save_slot_count

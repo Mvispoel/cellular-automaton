@@ -1,6 +1,7 @@
 import multiprocessing
 
 from cellular_automaton.ca_rule import Rule
+from cellular_automaton.ca_cell import Cell
 
 
 class CellularAutomaton:
@@ -14,7 +15,7 @@ class CellularAutomaton:
 class CellularAutomatonProcessor:
     def __init__(self, cellular_automaton, process_count: int = 1):
         self.ca = cellular_automaton
-        cells = {i: self.ca.cells[i] for i in range(len(self.ca.cells))}
+        cells = {i: (c.state, c.neighbours) for i, c in enumerate(self.ca.cells)}
         self.evolve_range = range(len(self.ca.cells))
         self.pool = multiprocessing.Pool(processes=process_count,
                                          initializer=_init_process,
@@ -22,7 +23,7 @@ class CellularAutomatonProcessor:
                                                    self.ca.evolution_rule,
                                                    self.ca.evolution_iteration_index))
         for cell in self.ca.cells:
-            cell.set_neighbours(None)
+            del cell.neighbours
 
     def evolve_x_times(self, x):
         for x in range(x):
@@ -46,5 +47,5 @@ def _init_process(cells, rule, index):
 
 
 def _process_routine(i):
-    global_cells[i].evolve_if_ready(global_rule.evolve_cell, global_iteration.value)
+    Cell.evolve_if_ready(global_cells[i], global_rule.evolve_cell, global_iteration.value)
 

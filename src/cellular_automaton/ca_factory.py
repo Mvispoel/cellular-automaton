@@ -25,9 +25,9 @@ class CAFactory:
     @staticmethod
     def _apply_neighbourhood_to_cells(cells, neighborhood, dimension):
         for cell in cells.values():
-            n_coordinates = neighborhood.calculate_cell_neighbor_coordinates(cell.get_coordinate(),
+            n_coordinates = neighborhood.calculate_cell_neighbor_coordinates(cell.coordinate,
                                                                              dimension)
-            cell.set_neighbours([cells[_join_coordinate(coordinate)].get_state() for coordinate in n_coordinates])
+            cell.neighbours = [cells[_join_coordinate(coordinate)].state for coordinate in n_coordinates]
 
 
 def _join_coordinate(coordinate):
