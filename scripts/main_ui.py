@@ -1,10 +1,8 @@
 #!/usr/bin/env python3
 
-from cellular_automaton.ca_cell_state import CellState
-from cellular_automaton.ca_rule import Rule
-
-from cellular_automaton.cellular_automaton import CellularAutomaton, CellularAutomatonProcessor
-from cellular_automaton.ca_factory import CAFactory
+import random
+from multiprocessing import freeze_support
+from cellular_automaton import *
 
 
 class TestRule(Rule):
@@ -40,18 +38,13 @@ def make_cellular_automaton(dimension, neighborhood, rule, state_class):
 
 
 if __name__ == "__main__":
-    import random
-    from multiprocessing import freeze_support
-    from cellular_automaton.ca_neighborhood import MooreNeighborhood, EdgeRule
-    from cellular_automaton.ca_display import PyGameFor2D
-
     freeze_support()
 
     random.seed(1000)
     # best single is 400/400 with 0,2 ca speed and 0,09 redraw / multi is 300/300 with 0.083
     neighborhood = MooreNeighborhood(EdgeRule.FIRST_AND_LAST_CELL_OF_DIMENSION_ARE_NEIGHBORS)
     ca = make_cellular_automaton(dimension=[100, 100], neighborhood=neighborhood, rule=TestRule(), state_class=MyState)
-    ca_window = PyGameFor2D(window_size=[1000, 800], cellular_automaton=ca)
     ca_processor = CellularAutomatonProcessor(process_count=4, cellular_automaton=ca)
-    ca_window.main_loop(cellular_automaton_processor=ca_processor,
-                        ca_iterations_per_draw=5)
+
+    ca_window = PyGameFor2D(window_size=[1000, 800], cellular_automaton=ca)
+    ca_window.main_loop(cellular_automaton_processor=ca_processor, ca_iterations_per_draw=10)

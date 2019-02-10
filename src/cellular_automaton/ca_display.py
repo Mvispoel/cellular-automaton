@@ -38,7 +38,6 @@ class PyGameFor2D:
     def __init__(self, window_size: list, cellular_automaton: CellularAutomaton):
         self._window_size = window_size
         self._cellular_automaton = cellular_automaton
-        self._cellular_automaton_proocessor = None
         pygame.init()
         pygame.display.set_caption("Cellular Automaton")
         self._screen = pygame.display.set_mode(self._window_size)
@@ -68,7 +67,7 @@ class PyGameFor2D:
                 self._evolve_with_performance(cellular_automaton_processor)
                 first = False
             else:
-                cellular_automaton_processor.evolve()
+                cellular_automaton_processor.evolve_x_times(ca_iterations_per_draw)
             time_ca_end = time.time()
             self.ca_display.redraw_cellular_automaton()
             time_ds_end = time.time()

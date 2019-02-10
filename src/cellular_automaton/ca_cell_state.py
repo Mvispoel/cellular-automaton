@@ -42,7 +42,7 @@ class CellState:
     def set_state_of_iteration(self, new_state, iteration):
         """ Will set the new state for the iteration modulo number of saved states.
         :param new_state:  The new state to set.
-        :param iteration:   Uses the iteration index, to differ between concurrent states.
+        :param iteration:  Uses the iteration index, to differ between concurrent states.
         :return True if state has changed.
         """
 

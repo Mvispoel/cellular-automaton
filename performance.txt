@@ -1,3 +1,16 @@
+# ~Goal
+def time_test(s, l):
+    first = time.time()
+    for i in range(100000):
+        s = l[i % 2]
+    last = time.time()
+    print((last-first)/100000)
+    
+time_test(1, [2, 1])
+1.401543617248535e-07
+
+heist auf einem processor ohne synchronized müsste ich ca 10 mal schneller sein? oder 3.3 mal weil 3 prozesse weniger?
+
 # With 100x100 10 times
 
 Try One
