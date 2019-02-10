@@ -17,11 +17,18 @@ class CellularAutomatonProcessor:
         self.ca = cellular_automaton
         cells = {i: (c.state, c.neighbours) for i, c in enumerate(self.ca.cells)}
         self.evolve_range = range(len(self.ca.cells))
-        self.pool = multiprocessing.Pool(processes=process_count,
-                                         initializer=_init_process,
-                                         initargs=(cells,
-                                                   self.ca.evolution_rule,
-                                                   self.ca.evolution_iteration_index))
+        self._evolve_method = lambda x, y: None
+
+        if process_count > 1:
+            self.pool = multiprocessing.Pool(processes=process_count,
+                                             initializer=_init_process,
+                                             initargs=(cells,
+                                                       self.ca.evolution_rule,
+                                                       self.ca.evolution_iteration_index))
+            self._evolve_method = self.pool.map
+        else:
+            _init_process(cells, self.ca.evolution_rule, self.ca.evolution_iteration_index)
+            self._evolve_method = lambda x, y: list(map(x, y))
         for cell in self.ca.cells:
             del cell.neighbours
 
@@ -31,7 +38,7 @@ class CellularAutomatonProcessor:
 
     def evolve(self):
         self.ca.evolution_iteration_index.value += 1
-        self.pool.map(_process_routine, self.evolve_range)
+        self._evolve_method(_process_routine, self.evolve_range)
 
 
 global_cells = None
