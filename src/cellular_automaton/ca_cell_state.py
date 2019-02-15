@@ -44,22 +44,28 @@ class CellState:
         :param iteration:  Uses the iteration index, to differ between concurrent states.
         :return True if state has changed.
         """
-        changed = self._change_state(new_state, iteration)
+        self._change_state_values(new_state, iteration)
+        changed = self._did_state_change(iteration)
         self._dirty |= changed
         self._active[self._calculate_slot(iteration)] = False
+
         return changed
 
-    def _change_state(self, new_state, iteration):
+    def _did_state_change(self, iteration):
+        for a, b in zip(self._state_slots[self._calculate_slot(iteration)],
+                        self._state_slots[self._calculate_slot(iteration - 1)]):
+            if a != b:
+                return True
+        return False
+
+    def _change_state_values(self, new_state, iteration):
         current_state = self.get_state_of_iteration(iteration)
-        changed = False
+        if len(new_state) != len(current_state):
+            raise IndexError("State length may not change!")
+
         for i, ns in enumerate(new_state):
-            try:
                 if current_state[i] != ns:
-                    changed = True
                     current_state[i] = ns
-            except IndexError:
-                raise IndexError("New State length or type is invalid!")
-        return changed
 
     def get_state_draw_color(self, iteration):
         raise NotImplementedError
@@ -70,6 +76,9 @@ class CellState:
 
 
 class SynchronousCellState(CellState):
+    """
+        CellState version using shared values for multi processing purpose.
+    """
     def __init__(self, initial_state=(0., ), draw_first_state=True):
         super().__init__(initial_state, draw_first_state)
         self._state_slots = [RawArray(c_float, initial_state) for i in range(self.__class__._state_save_slot_count)]
@@ -87,7 +96,12 @@ class SynchronousCellState(CellState):
         self._dirty.value = False
 
     def set_state_of_iteration(self, new_state, iteration):
-        changed = self._change_state(new_state, iteration)
+        self._change_state_values(new_state, iteration)
+        changed = self._did_state_change(iteration)
         self._dirty.value |= changed
         self._active[self._calculate_slot(iteration)].value = False
         return changed
+
+    @classmethod
+    def _calculate_slot(cls, iteration):
+        return iteration % cls._state_save_slot_count

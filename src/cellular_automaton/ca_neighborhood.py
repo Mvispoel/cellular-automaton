@@ -1,4 +1,5 @@
 from enum import Enum
+from operator import add
 
 
 class EdgeRule(Enum):
@@ -8,12 +9,12 @@ class EdgeRule(Enum):
 
 
 class Neighborhood:
-    def __init__(self, neighbors: list, edge_rule: EdgeRule):
+    def __init__(self, neighbours_relative: list, edge_rule: EdgeRule):
         """ Defines a neighborhood for cells.
-        :param neighbors: List of relative coordinates for the neighbors.
-        :param edge_rule: A EdgeRule to define, how Cells on the edge of the grid will be handled.
+        :param neighbours_relative: List of relative coordinates of cells neighbours.
+        :param edge_rule: EdgeRule to define, how cells on the edge of the grid will be handled.
         """
-        self._neighbors = neighbors
+        self._rel_neighbors = neighbours_relative
         self.edge_rule = edge_rule
         self.grid_dimensions = []
 
@@ -24,56 +25,31 @@ class Neighborhood:
         :return:
         """
         self.grid_dimensions = grid_dimensions
-        if self._does_ignore_edge_cell_rule_apply(cell_coordinate):
-            return []
-        else:
-            return self._apply_edge_rule_to_neighbours(cell_coordinate)
+        return list(self._neighbours_generator(cell_coordinate))
+
+    def _neighbours_generator(self, cell_coordinate):
+        if not self._does_ignore_edge_cell_rule_apply(cell_coordinate):
+            for rel_n in self._rel_neighbors:
+                yield from self._calculate_abs_neighbour_and_decide_validity(cell_coordinate, rel_n)
+
+    def _calculate_abs_neighbour_and_decide_validity(self, cell_coordinate, rel_n):
+        n = list(map(add, rel_n, cell_coordinate))
+        n_folded = self._apply_edge_overflow(n)
+        if n == n_folded or self.edge_rule == EdgeRule.FIRST_AND_LAST_CELL_OF_DIMENSION_ARE_NEIGHBORS:
+            yield n_folded
 
     def _does_ignore_edge_cell_rule_apply(self, coordinate):
-        if self.edge_rule == EdgeRule.IGNORE_EDGE_CELLS and self._is_coordinate_on_an_edge(coordinate):
-            return True
-        return False
+        return self.edge_rule == EdgeRule.IGNORE_EDGE_CELLS and self._is_coordinate_on_an_edge(coordinate)
 
     def _is_coordinate_on_an_edge(self, coordinate):
-        for neighbor_dimension, dimension in zip(coordinate, self.grid_dimensions):
-            if neighbor_dimension == 0 or neighbor_dimension == dimension - 1:
-                return True
-        return False
+        return all(0 == ci or ci == di-1 for ci, di in zip(coordinate, self.grid_dimensions))
 
-    def _apply_edge_rule_to_neighbours(self, coordinate):
-        remaining_neighbours = []
-        for neighbour in self._neighbors:
-            if not self._does_ignore_edge_cell_neighbours_rule_apply(neighbour, coordinate):
-                remaining_neighbours.append(self._calculate_neighbour_coordinate(neighbour, coordinate))
-        return remaining_neighbours
-
-    def _does_ignore_edge_cell_neighbours_rule_apply(self, neighbour, coordinate):
-        if self.edge_rule == EdgeRule.IGNORE_MISSING_NEIGHBORS_OF_EDGE_CELLS:
-            for rel_neighbour_dim, cell_dim, dim in zip(neighbour, coordinate, self.grid_dimensions):
-                neighbor_dimension = cell_dim + rel_neighbour_dim
-                if neighbor_dimension < 0 or neighbor_dimension >= dim:
-                    return True
-        return False
-
-    def _calculate_neighbour_coordinate(self, neighbour, cell_coordinate):
-        new_coordinate = []
-        for rel_neighbour_dim, cell_dim, dim in zip(neighbour, cell_coordinate, self.grid_dimensions):
-            neighbor_dim = cell_dim + rel_neighbour_dim
-            neighbor_dim = self._calculate_neighbour_dimension_of_edge_cells(dim, neighbor_dim)
-            new_coordinate.append(neighbor_dim)
-        return new_coordinate
-
-    @staticmethod
-    def _calculate_neighbour_dimension_of_edge_cells(dim, neighbor_dim):
-        if neighbor_dim < 0:
-            neighbor_dim = dim - 1
-        elif neighbor_dim >= dim:
-            neighbor_dim = 0
-        return neighbor_dim
+    def _apply_edge_overflow(self, n):
+        return list(map(lambda ni, di: (ni + di) % di, n, self.grid_dimensions))
 
 
 class MooreNeighborhood(Neighborhood):
-    def __init__(self, edge_rule: EdgeRule):
+    def __init__(self, edge_rule: EdgeRule = EdgeRule.IGNORE_EDGE_CELLS):
         super().__init__([[-1, -1], [0, -1], [1, -1],
                           [-1, 0], [1, 0],
                           [-1, 1], [0, 1], [1, 1]],

@@ -25,9 +25,17 @@ class DisplayFor2D:
         self._display_info = _DisplayInfo(grid_rect[-2:], grid_rect[:2], cell_size, screen)
 
     def redraw_cellular_automaton(self):
-        pygame.display.update(list(_cell_redraw_rectangles(self._cellular_automaton.cells,
-                                                           0,
-                                                           self._display_info)))
+        update_rects = list(self._cell_redraw_rectangles())
+        pygame.display.update(update_rects)
+
+    def _cell_redraw_rectangles(self):
+        for cell in self._cellular_automaton.cells:
+            if cell.state.is_set_for_redraw():
+                cell_color = cell.state.get_state_draw_color(self._cellular_automaton.evolution_iteration_index)
+                cell_pos = _calculate_cell_position(self._display_info.cell_size, cell)
+                surface_pos = list(map(operator.add, cell_pos, self._display_info.grid_pos))
+                yield self._display_info.screen.fill(cell_color, (surface_pos, self._display_info.cell_size))
+                cell.state.was_redrawn()
 
     def _calculate_cell_display_size(self, grid_size):
         grid_dimension = self._cellular_automaton.dimension
@@ -87,16 +95,6 @@ class PyGameFor2D:
         p.sort_stats('time').print_stats(10)
         print("TOTAL TIME: " + "{0:.4f}".format(time_ca_end - time_ca_start) + "s")
         print("SIZE: " + "{0:.4f}".format(size / (1024 * 1024)) + "MB")
-
-
-def _cell_redraw_rectangles(cells, evolution_index, display_info):
-    for cell in cells:
-        if cell.state.is_set_for_redraw():
-            cell_color = cell.state.get_state_draw_color(evolution_index)
-            cell_pos = _calculate_cell_position(display_info.cell_size, cell)
-            surface_pos = list(map(operator.add, cell_pos, display_info.grid_pos))
-            yield display_info.screen.fill(cell_color, (surface_pos, display_info.cell_size))
-            cell.state.was_redrawn()
 
 
 def _calculate_cell_position(cell_size, cell):

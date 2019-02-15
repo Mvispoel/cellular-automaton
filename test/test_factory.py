@@ -45,6 +45,23 @@ class TestCAFactory(unittest.TestCase):
         c = fac.make_cells([2, 2, 2], CellState)
         self.assertEqual(list(c.keys()), ['0-0-0', '0-0-1', '0-1-0', '0-1-1', '1-0-0', '1-0-1', '1-1-0', '1-1-1'])
 
+    def test_apply_neighbourhood(self):
+        fac = TestFac()
+        cells = fac.make_cells([3, 3], CellState)
+        fac.apply_neighbourhood(cells, MooreNeighborhood(EdgeRule.IGNORE_EDGE_CELLS), [3, 3])
+
+        neighbours = self.__create_neighbour_list_of_cell('1-1', cells)
+
+        self.assertEqual(set(neighbours), set(cells['1-1'].neighbours))
+
+    @staticmethod
+    def __create_neighbour_list_of_cell(cell_id, cells):
+        neighbours = []
+        for c in cells.values():
+            if c != cells[cell_id]:
+                neighbours.append(c.state)
+        return neighbours
+
 
 if __name__ == '__main__':
     unittest.main()

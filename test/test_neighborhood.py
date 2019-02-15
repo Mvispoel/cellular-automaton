@@ -11,7 +11,7 @@ class TestNeighborhood(unittest.TestCase):
         for neighborhood_set in neighborhood_sets:
             neighbors = neighborhood.calculate_cell_neighbor_coordinates(neighborhood_set[0], [3, 3])
             if neighborhood_set[1] != neighbors:
-                print((neighborhood_set[1]), (neighbors))
+                print("Error neighbours do not fit (expected, real): ", (neighborhood_set[1]), neighbors)
                 return False
         return True
 
