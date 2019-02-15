@@ -29,10 +29,10 @@ class DisplayFor2D:
         pygame.display.update(update_rects)
 
     def _cell_redraw_rectangles(self):
-        for cell in self._cellular_automaton.cells:
+        for coordinate, cell in self._cellular_automaton.cells.items():
             if cell.state.is_set_for_redraw():
                 cell_color = cell.state.get_state_draw_color(self._cellular_automaton.evolution_iteration_index)
-                cell_pos = _calculate_cell_position(self._display_info.cell_size, cell)
+                cell_pos = _calculate_cell_position(self._display_info.cell_size, coordinate)
                 surface_pos = list(map(operator.add, cell_pos, self._display_info.grid_pos))
                 yield self._display_info.screen.fill(cell_color, (surface_pos, self._display_info.cell_size))
                 cell.state.was_redrawn()
@@ -97,5 +97,5 @@ class PyGameFor2D:
         print("SIZE: " + "{0:.4f}".format(size / (1024 * 1024)) + "MB")
 
 
-def _calculate_cell_position(cell_size, cell):
-    return list(map(operator.mul, cell_size, cell.coordinate))
+def _calculate_cell_position(cell_size, coordinate):
+    return list(map(operator.mul, cell_size, coordinate))

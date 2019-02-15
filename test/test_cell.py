@@ -12,14 +12,14 @@ class TestState(CellState):
 
 class TestCellState(unittest.TestCase):
     def setUp(self):
-        self.cell = [TestState(), []]
+        self.cell = Cell(TestState)
         self.neighbours = [TestState() for x in range(5)]
         for neighbour in self.neighbours:
             neighbour.set_state_of_iteration((0, ), 0)
-        self.cell[1] = self.neighbours
+        self.cell.neighbours = self.neighbours
 
     def cell_and_neighbours_active(self, iteration):
-        self.neighbours.append(self.cell[0])
+        self.neighbours.append(self.cell.state)
         all_active = True
         for state in self.neighbours:
             if not state.is_active(iteration):

@@ -12,23 +12,18 @@ class CAFactory:
 
         cells = CAFactory._make_cells(dimension, state_class)
         CAFactory._apply_neighbourhood_to_cells(cells, neighborhood, dimension)
-        return tuple(cells.values())
+        return cells
 
     @staticmethod
     def _make_cells(dimension, state_class):
         cells = {}
         for c in itertools.product(*[range(d) for d in dimension]):
-            coordinate_string = _join_coordinate(c)
-            cells[coordinate_string] = Cell(state_class, c)
+            cells[tuple(c)] = Cell(state_class)
         return cells
 
     @staticmethod
     def _apply_neighbourhood_to_cells(cells, neighborhood, dimension):
-        for cell in cells.values():
-            n_coordinates = neighborhood.calculate_cell_neighbor_coordinates(cell.coordinate, dimension)
-            cell.neighbours = [cells[_join_coordinate(coordinate)].state for coordinate in n_coordinates]
-
-
-def _join_coordinate(coordinate):
-    return '-'.join(str(x) for x in coordinate)
+        for coordinate, cell in cells.items():
+            n_coordinates = neighborhood.calculate_cell_neighbor_coordinates(coordinate, dimension)
+            cell.neighbours = [cells[tuple(nc)].state for nc in n_coordinates]
 
