@@ -1,5 +1,4 @@
-from cellular_automaton.ca_cell import Cell, CellState
-from cellular_automaton.ca_neighborhood import Neighborhood
+from cellular_automaton import *
 from typing import Type
 import itertools
 
@@ -7,12 +6,12 @@ import itertools
 class CAFactory:
     @staticmethod
     def make_cellular_automaton(dimension,
-                                neighborhood: Type[Neighborhood],
-                                state_class: Type[CellState]):
-
+                                neighborhood: Neighborhood,
+                                state_class: Type[CellState],
+                                rule: Type[Rule]):
         cells = CAFactory._make_cells(dimension, state_class)
-        CAFactory._apply_neighbourhood_to_cells(cells, neighborhood, dimension)
-        return cells
+        CAFactory._apply_neighborhood_to_cells(cells, neighborhood, dimension)
+        return CellularAutomatonState(cells, dimension, rule)
 
     @staticmethod
     def _make_cells(dimension, state_class):
@@ -22,8 +21,8 @@ class CAFactory:
         return cells
 
     @staticmethod
-    def _apply_neighbourhood_to_cells(cells, neighborhood, dimension):
+    def _apply_neighborhood_to_cells(cells, neighborhood, dimension):
         for coordinate, cell in cells.items():
             n_coordinates = neighborhood.calculate_cell_neighbor_coordinates(coordinate, dimension)
-            cell.neighbours = [cells[tuple(nc)].state for nc in n_coordinates]
+            cell.neighbor_states = [cells[tuple(nc)].state for nc in n_coordinates]
 

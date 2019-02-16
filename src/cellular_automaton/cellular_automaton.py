@@ -1,16 +1,6 @@
 import multiprocessing
-
-from cellular_automaton.ca_rule import Rule
-from cellular_automaton.ca_cell import Cell
+from multiprocessing import freeze_support
 from ctypes import c_int
-
-
-class CellularAutomaton:
-    def __init__(self, cells, dimension, evolution_rule: Rule):
-        self.cells = cells
-        self.dimension = dimension
-        self.evolution_rule = evolution_rule
-        self.evolution_iteration_index = -1
 
 
 class CellularAutomatonProcessor:
@@ -22,51 +12,51 @@ class CellularAutomatonProcessor:
             self.evolve()
 
     def evolve(self):
-        self._ca.evolution_iteration_index += 1
-        i = self._ca.evolution_iteration_index
+        self._ca.current_evolution_step += 1
+        i = self._ca.current_evolution_step
         r = self._ca.evolution_rule.evolve_cell
-        list(map(lambda c: Cell.evolve_if_ready((c.state, c.neighbours), r, i), tuple(self._ca.cells.items())))
-        # print(sum(1 for c in self._ca.cells if c.state.is_set_for_redraw()))
+        list(map(lambda c: c.evolve_if_ready(r, i), tuple(self._ca.cells.values())))
 
 
 class CellularAutomatonMultiProcessor(CellularAutomatonProcessor):
     def __init__(self, cellular_automaton, process_count: int = 2):
+        freeze_support()
         if process_count < 1:
             raise ValueError
 
         super().__init__(cellular_automaton)
 
         self.evolve_range = range(len(self._ca.cells))
-        self.evolution_iteration_index = multiprocessing.RawValue(c_int, -1)
+        self.shared_evolution_step = multiprocessing.RawValue(c_int, self._ca.current_evolution_step)
 
+        self.__init_processes_and_clean_cell_instances(process_count)
+
+    def __init_processes_and_clean_cell_instances(self, process_count):
         self.pool = multiprocessing.Pool(processes=process_count,
                                          initializer=_init_process,
                                          initargs=(tuple(self._ca.cells.values()),
                                                    self._ca.evolution_rule,
-                                                   self.evolution_iteration_index))
-        self._evolve_method = self.pool.map
-
+                                                   self.shared_evolution_step))
         for cell in self._ca.cells.values():
-            del cell.neighbours
+            del cell.neighbor_states
 
     def evolve(self):
-        self._ca.evolution_iteration_index += 1
-        self.evolution_iteration_index.value = self._ca.evolution_iteration_index
+        self._ca.current_evolution_step += 1
+        self.shared_evolution_step.value = self._ca.current_evolution_step
         self.pool.map(_process_routine, self.evolve_range)
 
 
 global_cells = None
 global_rule = None
-global_iteration = None
+global_evolution_step = None
 
 
 def _init_process(cells, rule, index):
-    global global_rule, global_cells, global_iteration
+    global global_rule, global_cells, global_evolution_step
     global_cells = cells
     global_rule = rule
-    global_iteration = index
+    global_evolution_step = index
 
 
 def _process_routine(i):
-    Cell.evolve_if_ready(global_cells[i], global_rule.evolve_cell, global_iteration.value)
-
+    global_cells[i].evolve_if_ready(global_rule.evolve_cell, global_evolution_step.value)

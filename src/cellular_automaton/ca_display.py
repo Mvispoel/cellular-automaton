@@ -7,7 +7,8 @@ import pstats
 from pympler import asizeof
 
 
-from cellular_automaton.cellular_automaton import CellularAutomaton, CellularAutomatonProcessor
+from cellular_automaton.ca_state import CellularAutomatonState
+from cellular_automaton.cellular_automaton import CellularAutomatonProcessor
 
 
 class _DisplayInfo:
@@ -19,7 +20,7 @@ class _DisplayInfo:
 
 
 class DisplayFor2D:
-    def __init__(self, grid_rect: list, cellular_automaton: CellularAutomaton, screen):
+    def __init__(self, grid_rect: list, cellular_automaton: CellularAutomatonState, screen):
         self._cellular_automaton = cellular_automaton
         cell_size = self._calculate_cell_display_size(grid_rect[-2:])
         self._display_info = _DisplayInfo(grid_rect[-2:], grid_rect[:2], cell_size, screen)
@@ -31,8 +32,8 @@ class DisplayFor2D:
     def _cell_redraw_rectangles(self):
         for coordinate, cell in self._cellular_automaton.cells.items():
             if cell.state.is_set_for_redraw():
-                cell_color = cell.state.get_state_draw_color(self._cellular_automaton.evolution_iteration_index)
-                cell_pos = _calculate_cell_position(self._display_info.cell_size, coordinate)
+                cell_color = cell.state.get_state_draw_color(self._cellular_automaton.current_evolution_step)
+                cell_pos = self._calculate_cell_position(self._display_info.cell_size, coordinate)
                 surface_pos = list(map(operator.add, cell_pos, self._display_info.grid_pos))
                 yield self._display_info.screen.fill(cell_color, (surface_pos, self._display_info.cell_size))
                 cell.state.was_redrawn()
@@ -41,9 +42,13 @@ class DisplayFor2D:
         grid_dimension = self._cellular_automaton.dimension
         return list(map(operator.truediv, grid_size, grid_dimension))
 
+    @staticmethod
+    def _calculate_cell_position(cell_size, coordinate):
+        return list(map(operator.mul, cell_size, coordinate))
+
 
 class PyGameFor2D:
-    def __init__(self, window_size: list, cellular_automaton: CellularAutomaton):
+    def __init__(self, window_size: list, cellular_automaton: CellularAutomatonState):
         self._window_size = window_size
         self._cellular_automaton = cellular_automaton
         pygame.init()
@@ -63,7 +68,7 @@ class PyGameFor2D:
         update_rect = self._screen.blit(label, pos)
         pygame.display.update(update_rect)
 
-    def main_loop(self, cellular_automaton_processor: CellularAutomatonProcessor, ca_iterations_per_draw):
+    def main_loop(self, cellular_automaton_processor: CellularAutomatonProcessor, evolution_steps_per_draw):
         running = True
         cellular_automaton_processor.evolve()
         first = True
@@ -75,7 +80,7 @@ class PyGameFor2D:
                 self._evolve_with_performance(cellular_automaton_processor)
                 first = False
             else:
-                cellular_automaton_processor.evolve_x_times(ca_iterations_per_draw)
+                cellular_automaton_processor.evolve_x_times(evolution_steps_per_draw)
             time_ca_end = time.time()
             self.ca_display.redraw_cellular_automaton()
             time_ds_end = time.time()
@@ -95,7 +100,3 @@ class PyGameFor2D:
         p.sort_stats('time').print_stats(10)
         print("TOTAL TIME: " + "{0:.4f}".format(time_ca_end - time_ca_start) + "s")
         print("SIZE: " + "{0:.4f}".format(size / (1024 * 1024)) + "MB")
-
-
-def _calculate_cell_position(cell_size, coordinate):
-    return list(map(operator.mul, cell_size, coordinate))

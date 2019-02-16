@@ -16,63 +16,82 @@ class CellState:
         self._active[0] = True
         self._dirty = draw_first_state
 
-    def is_active(self, iteration):
-        return self._active[self._calculate_slot(iteration)]
+    def is_active(self, current_evolution_step):
+        """ Returns the active status for the requested evolution_step
+        :param current_evolution_step: The evolution_step of interest.
+        :return: True if the cell state is set active for this evolution_step.
+        """
+        return self._active[self._calculate_slot(current_evolution_step)]
 
-    def set_active_for_next_iteration(self, iteration):
-        self._active[self._calculate_slot(iteration + 1)] = True
+    def set_active_for_next_evolution_step(self, current_evolution_step):
+        """ Sets the cell active for the next evolution_step, so it will be evolved.
+        :param current_evolution_step: The current evolution_step index.
+        :return:
+        """
+        self._active[self._calculate_slot(current_evolution_step + 1)] = True
 
     def is_set_for_redraw(self):
+        """ States if this state should be redrawn.
+        :return: True if redraw is needed.
+        """
         return self._dirty
 
     def was_redrawn(self):
+        """ Remove the state from redraw cycle until next state change """
         self._dirty = False
 
-    def get_state_of_last_iteration(self, current_iteration_index):
-        return self.get_state_of_iteration(current_iteration_index - 1)
+    def get_state_of_last_evolution_step(self, current_evolution_step):
+        return self.get_state_of_evolution_step(current_evolution_step - 1)
 
-    def get_state_of_iteration(self, iteration):
-        """ Will return the state for the iteration modulo number of saved states.
-        :param iteration:   Uses the iteration index, to differ between concurrent states.
-        :return The state for this iteration.
+    def get_state_of_evolution_step(self, evolution_step):
+        """ Returns the state of the evolution_step.
+        :param evolution_step:  Uses the evolution_step index, to differ between concurrent states.
+        :return The state of this evolution_step.
         """
-        return self._state_slots[self._calculate_slot(iteration)]
+        return self._state_slots[self._calculate_slot(evolution_step)]
 
-    def set_state_of_iteration(self, new_state, iteration):
-        """ Will set the new state for the iteration modulo number of saved states.
+    def set_state_of_evolution_step(self, new_state, evolution_step):
+        """ Sets the new state for the evolution_step.
         :param new_state:  The new state to set.
-        :param iteration:  Uses the iteration index, to differ between concurrent states.
-        :return True if state has changed.
+        :param evolution_step:  The evolution_step index, to differ between concurrent states.
+        :return True if the state really changed.
         """
-        self._change_state_values(new_state, iteration)
-        changed = self._did_state_change(iteration)
+        changed = self._set_new_state_if_valid(new_state, evolution_step)
         self._dirty |= changed
-        self._active[self._calculate_slot(iteration)] = False
-
+        self._active[self._calculate_slot(evolution_step)] = False
         return changed
 
-    def _did_state_change(self, iteration):
-        for a, b in zip(self._state_slots[self._calculate_slot(iteration)],
-                        self._state_slots[self._calculate_slot(iteration - 1)]):
+    def _set_new_state_if_valid(self, new_state, evolution_step):
+        current_state = self.get_state_of_evolution_step(evolution_step)
+        if len(new_state) != len(current_state):
+            raise IndexError("State length may not change!")
+
+        self.__change_current_state_values(current_state, new_state)
+        return self.__did_state_change(evolution_step)
+
+    @staticmethod
+    def __change_current_state_values(current_state, new_state):
+        for i, ns in enumerate(new_state):
+            if current_state[i] != ns:
+                current_state[i] = ns
+
+    def __did_state_change(self, evolution_step):
+        for a, b in zip(self.get_state_of_evolution_step(evolution_step),
+                        self.get_state_of_last_evolution_step(evolution_step)):
             if a != b:
                 return True
         return False
 
-    def _change_state_values(self, new_state, iteration):
-        current_state = self.get_state_of_iteration(iteration)
-        if len(new_state) != len(current_state):
-            raise IndexError("State length may not change!")
-
-        for i, ns in enumerate(new_state):
-                if current_state[i] != ns:
-                    current_state[i] = ns
-
-    def get_state_draw_color(self, iteration):
+    def get_state_draw_color(self, evolution_step):
+        """ When implemented should return the color representing the requested state.
+        :param evolution_step: Requested evolution_step.
+        :return: Color of the state as rgb tuple
+        """
         raise NotImplementedError
 
     @classmethod
-    def _calculate_slot(cls, iteration):
-        return iteration % cls._state_save_slot_count
+    def _calculate_slot(cls, evolution_step):
+        return evolution_step % cls._state_save_slot_count
 
 
 class SynchronousCellState(CellState):
@@ -86,8 +105,8 @@ class SynchronousCellState(CellState):
         self._active[0].value = True
         self._dirty = RawValue(c_bool, draw_first_state)
 
-    def set_active_for_next_iteration(self, iteration):
-        self._active[self._calculate_slot(iteration + 1)].value = True
+    def set_active_for_next_evolution_step(self, current_evolution_step):
+        self._active[self._calculate_slot(current_evolution_step + 1)].value = True
 
     def is_set_for_redraw(self):
         return self._dirty.value
@@ -95,13 +114,8 @@ class SynchronousCellState(CellState):
     def was_redrawn(self):
         self._dirty.value = False
 
-    def set_state_of_iteration(self, new_state, iteration):
-        self._change_state_values(new_state, iteration)
-        changed = self._did_state_change(iteration)
+    def set_state_of_evolution_step(self, new_state, evolution_step):
+        changed = self._set_new_state_if_valid(new_state, evolution_step)
         self._dirty.value |= changed
-        self._active[self._calculate_slot(iteration)].value = False
+        self._active[self._calculate_slot(evolution_step)].value = False
         return changed
-
-    @classmethod
-    def _calculate_slot(cls, iteration):
-        return iteration % cls._state_save_slot_count

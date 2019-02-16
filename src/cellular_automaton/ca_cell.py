@@ -5,19 +5,17 @@ from typing import Type
 class Cell:
     def __init__(self, state_class: Type[CellState]):
         self.state = state_class()
-        self.neighbours = []
+        self.neighbor_states = []
 
-    @staticmethod
-    def evolve_if_ready(cell, rule, iteration):
-        if cell.state.is_active(iteration):
-            new_state = rule(cell.state.get_state_of_last_iteration(iteration),
-                             [n.get_state_of_last_iteration(iteration) for n in cell.neighbours])
-            Cell.set_new_state_and_activate(cell, new_state, iteration)
+    def evolve_if_ready(self, rule, evolution_step):
+        if self.state.is_active(evolution_step):
+            new_state = rule(self.state.get_state_of_last_evolution_step(evolution_step),
+                             [n.get_state_of_last_evolution_step(evolution_step) for n in self.neighbor_states])
+            self.set_new_state_and_activate(new_state, evolution_step)
 
-    @staticmethod
-    def set_new_state_and_activate(cell, new_state: CellState, iteration):
-        changed = cell.state.set_state_of_iteration(new_state, iteration)
+    def set_new_state_and_activate(self, new_state: CellState, evolution_step):
+        changed = self.state.set_state_of_evolution_step(new_state, evolution_step)
         if changed:
-            cell.state.set_active_for_next_iteration(iteration)
-            for n in cell.neighbours:
-                n.set_active_for_next_iteration(iteration)
+            self.state.set_active_for_next_evolution_step(evolution_step)
+            for n in self.neighbor_states:
+                n.set_active_for_next_evolution_step(evolution_step)

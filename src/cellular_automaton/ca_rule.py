@@ -7,11 +7,11 @@ class Rule:
 
     @staticmethod
     @abstractmethod
-    def evolve_cell(last_cell_state, neighbours_last_states):
+    def evolve_cell(last_cell_state, neighbors_last_states):
         """ Calculates and sets new state of 'cell'.
         :param last_cell_state:   The cells current state to calculate new state for.
-        :param neighbours_last_states:  The cells neighbours current states.
+        :param neighbors_last_states:  The cells neighbors current states.
         :return: True if state changed, False if not.
-        A cells evolution will only be called if it or at least one of its neighbours has changed last iteration cycle.
+        A cells evolution will only be called if it or at least one of its neighbors has changed last evolution_step cycle.
         """
         return False
