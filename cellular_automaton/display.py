@@ -2,11 +2,6 @@ import pygame
 import time
 import operator
 
-import cProfile
-import pstats
-from pympler import asizeof
-
-
 from . import CellularAutomatonState, CellularAutomatonProcessor
 
 
@@ -61,6 +56,7 @@ class PyGameFor2D:
         self._screen.fill([0, 0, 0], ((0, 0), (self._window_size[0], 30)))
         self._write_text((10, 5), "CA: " + "{0:.4f}".format(time_ca_end - time_ca_start) + "s")
         self._write_text((310, 5), "Display: " + "{0:.4f}".format(time_ds_end - time_ca_end) + "s")
+        self._write_text((660, 5), "Step: " + str(self._cellular_automaton.current_evolution_step))
 
     def _write_text(self, pos, text, color=(0, 255, 0)):
         label = self._font.render(text, 1, color)
@@ -69,33 +65,12 @@ class PyGameFor2D:
 
     def main_loop(self, cellular_automaton_processor: CellularAutomatonProcessor, evolution_steps_per_draw):
         running = True
-        cellular_automaton_processor.evolve()
-        first = True
 
         while running:
             pygame.event.get()
             time_ca_start = time.time()
-            if first:
-                self._evolve_with_performance(cellular_automaton_processor)
-                first = False
-            else:
-                cellular_automaton_processor.evolve_x_times(evolution_steps_per_draw)
+            cellular_automaton_processor.evolve_x_times(evolution_steps_per_draw)
             time_ca_end = time.time()
             self.ca_display.redraw_cellular_automaton()
             time_ds_end = time.time()
             self._print_process_duration(time_ca_end, time_ca_start, time_ds_end)
-
-    def _evolve_with_performance(self, cap):
-        size = asizeof.asizeof(self._cellular_automaton)
-        time_ca_start = time.time()
-        cProfile.runctx("cap.evolve_x_times(10)", None, locals(), "performance_test")
-        time_ca_end = time.time()
-        print("PERFORMANCE")
-        p = pstats.Stats('performance_test')
-        p.strip_dirs()
-        # sort by cumulative time in a function
-        p.sort_stats('cumulative').print_stats(10)
-        # sort by time spent in a function
-        p.sort_stats('time').print_stats(10)
-        print("TOTAL TIME: " + "{0:.4f}".format(time_ca_end - time_ca_start) + "s")
-        print("SIZE: " + "{0:.4f}".format(size / (1024 * 1024)) + "MB")
