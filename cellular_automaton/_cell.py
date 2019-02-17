@@ -1,4 +1,4 @@
-from cellular_automaton.ca_cell_state import CellState
+from .cell_state import CellState
 from typing import Type
 
 

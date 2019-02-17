@@ -1,7 +1,7 @@
 import sys
 sys.path.append('../src')
 
-import cellular_automaton.ca_cell_state as cs
+from cellular_automaton import cellular_automaton as cs
 import unittest
 
 

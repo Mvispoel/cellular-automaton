@@ -1,4 +1,4 @@
-from cellular_automaton.ca_rule import Rule
+from cellular_automaton.cellular_automaton import Rule
 from typing import Type
 
 

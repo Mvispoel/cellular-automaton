@@ -7,8 +7,7 @@ import pstats
 from pympler import asizeof
 
 
-from cellular_automaton.ca_state import CellularAutomatonState
-from cellular_automaton.cellular_automaton import CellularAutomatonProcessor
+from . import CellularAutomatonState, CellularAutomatonProcessor
 
 
 class _DisplayInfo:

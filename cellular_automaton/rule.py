@@ -11,7 +11,7 @@ class Rule:
         """ Calculates and sets new state of 'cell'.
         :param last_cell_state:   The cells current state to calculate new state for.
         :param neighbors_last_states:  The cells neighbors current states.
-        :return: True if state changed, False if not.
+        :return: New state.
         A cells evolution will only be called if it or at least one of its neighbors has changed last evolution_step cycle.
         """
-        return False
+        return last_cell_state

@@ -1,7 +1,7 @@
 import sys
 sys.path.append('../src')
 
-import cellular_automaton.ca_neighborhood as csn
+from cellular_automaton import cellular_automaton as csn
 import unittest
 
 

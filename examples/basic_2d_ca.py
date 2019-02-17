@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 
 import random
-from cellular_automaton.ca_rule import Rule
-from cellular_automaton.ca_cell_state import CellState, SynchronousCellState
+from cellular_automaton import *
 
 
 class TestRule(Rule):
@@ -29,7 +28,6 @@ class MyState(CellState):
 
 
 if __name__ == "__main__":
-    from cellular_automaton import *
     # best single is 400/400 with 0,2 ca speed and 0,09 redraw / multi is 300/300 with 0.083
     neighborhood = MooreNeighborhood(EdgeRule.FIRST_AND_LAST_CELL_OF_DIMENSION_ARE_NEIGHBORS)
     ca = CAFactory.make_cellular_automaton(dimension=[100, 100],

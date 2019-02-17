@@ -1,4 +1,6 @@
-from cellular_automaton import *
+from . import Neighborhood, CellState, Rule
+from ._cell import Cell
+from ._state import CellularAutomatonState
 from typing import Type
 import itertools
 
