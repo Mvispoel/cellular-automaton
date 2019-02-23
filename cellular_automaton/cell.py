@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import cellular_automaton.cellular_automaton._cell_state as cs
+import cellular_automaton.cellular_automaton.cell_state as cs
 
 
 class Cell:

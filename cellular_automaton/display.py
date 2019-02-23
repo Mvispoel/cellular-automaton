@@ -18,7 +18,7 @@ import pygame
 import time
 import operator
 
-import cellular_automaton.cellular_automaton._automaton as automaton
+import cellular_automaton.cellular_automaton.automaton as automaton
 
 
 class _CASurface:

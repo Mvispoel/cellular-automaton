@@ -1,8 +1,8 @@
 from . import Neighborhood, Rule
-from ._automaton import CellularAutomatonProcessor, CellularAutomatonMultiProcessor
-from ._cell import Cell
-from ._state import CellularAutomatonState
-from ._cell_state import CellState, SynchronousCellState
+from .automaton import CellularAutomatonProcessor, CellularAutomatonMultiProcessor
+from .cell import Cell
+from .state import CellularAutomatonState
+from .cell_state import CellState, SynchronousCellState
 from typing import Type
 """
 Copyright 2019 Richard Feistenauer

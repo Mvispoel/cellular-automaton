@@ -18,8 +18,8 @@ import sys
 sys.path.append('../..')
 
 from cellular_automaton.cellular_automaton import *
-from cellular_automaton.cellular_automaton._cell_state import CellState
-from cellular_automaton.cellular_automaton._state import CellularAutomatonState
+from cellular_automaton.cellular_automaton.cell_state import CellState
+from cellular_automaton.cellular_automaton.state import CellularAutomatonState
 import unittest
 import mock
 
