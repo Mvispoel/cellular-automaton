@@ -10,7 +10,7 @@ class TestRule(Rule):
     def init_state(self, cell_coordinate):
         rand = random.randrange(0, 101, 1)
         init = max(.0, float(rand - 99))
-        return (init,)
+        return [init]
 
     def evolve_cell(self, last_cell_state, neighbors_last_states):
         return self._get_neighbor_by_relative_coordinate(neighbors_last_states, (-1, -1))

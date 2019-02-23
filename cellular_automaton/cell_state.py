@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from multiprocessing import RawArray, RawValue
+from multiprocessing.sharedctypes import RawArray, RawValue
 from ctypes import c_float, c_bool
 
 

@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from cellular_automaton.cellular_automaton import Rule
+from . import Rule
 
 
 class CellularAutomatonState:

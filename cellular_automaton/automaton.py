@@ -15,7 +15,8 @@ limitations under the License.
 """
 
 import multiprocessing
-from multiprocessing import freeze_support
+
+from multiprocessing.sharedctypes import RawValue
 from ctypes import c_int
 
 
@@ -28,10 +29,10 @@ class CellularAutomatonProcessor:
             self.evolve()
 
     def evolve(self):
+        self._ca.current_evolution_step += 1
         i = self._ca.current_evolution_step
         r = self._ca.evolution_rule.evolve_cell
         list(map(lambda c: c.evolve_if_ready(r, i), tuple(self._ca.cells.values())))
-        self._ca.current_evolution_step += 1
 
     def get_dimension(self):
         return self._ca.dimension
@@ -48,14 +49,14 @@ class CellularAutomatonProcessor:
 
 class CellularAutomatonMultiProcessor(CellularAutomatonProcessor):
     def __init__(self, cellular_automaton, process_count: int = 2):
-        freeze_support()
+        multiprocessing.freeze_support()
         if process_count < 1:
             raise ValueError
 
         super().__init__(cellular_automaton)
 
         self.evolve_range = range(len(self._ca.cells))
-        self._ca.current_evolution_step = multiprocessing.RawValue(c_int, self._ca.current_evolution_step)
+        self._ca.current_evolution_step = RawValue(c_int, self._ca.current_evolution_step)
         self.__init_processes_and_clean_cell_instances(process_count)
 
     def __init_processes_and_clean_cell_instances(self, process_count):
@@ -66,8 +67,8 @@ class CellularAutomatonMultiProcessor(CellularAutomatonProcessor):
                                                    self._ca.current_evolution_step))
 
     def evolve(self):
-        self.pool.map(_process_routine, self.evolve_range)
         self._ca.current_evolution_step.value += 1
+        self.pool.map(_process_routine, self.evolve_range)
 
     def get_current_evolution_step(self):
         return self._ca.current_evolution_step.value

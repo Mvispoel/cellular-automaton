@@ -15,11 +15,12 @@ limitations under the License.
 """
 
 import abc
-import cellular_automaton.cellular_automaton.neighborhood as neighbour
+
+from . import neighborhood
 
 
 class Rule:
-    def __init__(self, neighborhood_: neighbour.Neighborhood):
+    def __init__(self, neighborhood_: neighborhood.Neighborhood):
         self._neighborhood = neighborhood_
 
     def _get_neighbor_by_relative_coordinate(self, neighbours, rel_coordinate):

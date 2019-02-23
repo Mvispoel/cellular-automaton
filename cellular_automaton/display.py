@@ -18,11 +18,11 @@ import pygame
 import time
 import operator
 
-import cellular_automaton.cellular_automaton.automaton as automaton
+from . import automaton
 
 
 class _CASurface:
-    def __init__(self, grid_rect: pygame.Rect, cellular_automaton: automaton.CellularAutomatonProcessor, screen):
+    def __init__(self, grid_rect, cellular_automaton: automaton.CellularAutomatonProcessor, screen):
         self._cellular_automaton = cellular_automaton
         self.__rect = grid_rect
         self.__cell_size = self._calculate_cell_display_size()
@@ -33,8 +33,8 @@ class _CASurface:
         return [self.__rect.width / grid_dimension[0], self.__rect.height / grid_dimension[1]]
 
     def redraw_cellular_automaton(self):
-        update_rects = list(self.__cell_redraw_dirty_rectangles())
-        pygame.display.update(update_rects)
+        update_rectangles = list(self.__cell_redraw_dirty_rectangles())
+        pygame.display.update(update_rectangles)
 
     def __cell_redraw_dirty_rectangles(self):
         for coordinate, cell in self._cellular_automaton.get_cells().items():
@@ -45,8 +45,8 @@ class _CASurface:
         cell_color = self.__get_cell_color(cell)
         cell_pos = self._calculate_cell_position_in_the_grid(coordinate)
         surface_pos = self._calculate_cell_position_on_screen(cell_pos)
-        yield self._draw_the_cell_to_screen(cell_color, surface_pos)
         cell.was_redrawn()
+        yield self._draw_the_cell_to_screen(cell_color, surface_pos)
 
     def __get_cell_color(self, cell):
         return self._cellular_automaton.get_current_rule().get_state_draw_color(

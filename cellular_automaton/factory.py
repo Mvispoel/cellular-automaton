@@ -1,9 +1,3 @@
-from . import Neighborhood, Rule
-from .automaton import CellularAutomatonProcessor, CellularAutomatonMultiProcessor
-from .cell import Cell
-from .state import CellularAutomatonState
-from .cell_state import CellState, SynchronousCellState
-from typing import Type
 """
 Copyright 2019 Richard Feistenauer
 
@@ -21,6 +15,14 @@ limitations under the License.
 """
 
 import itertools
+
+from typing import Type
+
+from . import Neighborhood, Rule
+from .automaton import CellularAutomatonProcessor, CellularAutomatonMultiProcessor
+from .cell import Cell
+from .state import CellularAutomatonState
+from .cell_state import CellState, SynchronousCellState
 
 
 class CAFactory:

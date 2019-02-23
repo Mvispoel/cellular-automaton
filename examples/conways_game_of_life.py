@@ -14,7 +14,7 @@ class TestRule(Rule):
     def init_state(self, cell_coordinate):
         rand = random.randrange(0, 16, 1)
         init = max(.0, float(rand - 14))
-        return (init,)
+        return [init]
 
     def evolve_cell(self, last_cell_state, neighbors_last_states):
         new_cell_state = last_cell_state
