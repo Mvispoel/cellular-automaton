@@ -1,30 +1,72 @@
-from . import Neighborhood, CellState, Rule
+from . import Neighborhood, Rule
+from ._automaton import CellularAutomatonProcessor, CellularAutomatonMultiProcessor
 from ._cell import Cell
 from ._state import CellularAutomatonState
+from ._cell_state import CellState, SynchronousCellState
 from typing import Type
+"""
+Copyright 2019 Richard Feistenauer
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+"""
+
 import itertools
 
 
 class CAFactory:
     @staticmethod
-    def make_cellular_automaton(dimension,
-                                neighborhood: Neighborhood,
-                                state_class: Type[CellState],
-                                rule: Type[Rule]):
-        cells = CAFactory._make_cells(dimension, state_class)
-        CAFactory._apply_neighborhood_to_cells(cells, neighborhood, dimension)
+    def make_single_process_cellular_automaton(dimension,
+                                               neighborhood: Neighborhood,
+                                               rule: Type[Rule]):
+
+        ca = CAFactory._make_cellular_automaton_state(dimension, neighborhood, CellState, rule)
+        return CellularAutomatonProcessor(ca)
+
+    @staticmethod
+    def _make_cellular_automaton_state(dimension, neighborhood, state_class, rule_class):
+        rule = rule_class(neighborhood)
+        cell_states = CAFactory._make_cell_states(state_class, rule, dimension)
+        cells = CAFactory._make_cells(cell_states, neighborhood, dimension)
         return CellularAutomatonState(cells, dimension, rule)
 
     @staticmethod
-    def _make_cells(dimension, state_class):
-        cells = {}
-        for c in itertools.product(*[range(d) for d in dimension]):
-            cells[tuple(c)] = Cell(state_class)
-        return cells
+    def make_multi_process_cellular_automaton(dimension,
+                                              neighborhood: Neighborhood,
+                                              rule: Type[Rule],
+                                              processes: int):
+        if processes < 1:
+            raise ValueError("At least one process is necessary")
+        elif processes == 1:
+            return CAFactory.make_single_process_cellular_automaton(dimension, neighborhood, rule)
+        else:
+            ca = CAFactory._make_cellular_automaton_state(dimension, neighborhood, SynchronousCellState, rule)
+            return CellularAutomatonMultiProcessor(ca, processes)
 
     @staticmethod
-    def _apply_neighborhood_to_cells(cells, neighborhood, dimension):
-        for coordinate, cell in cells.items():
+    def _make_cell_states(state_class, rule, dimension):
+        cell_states = {}
+        for c in itertools.product(*[range(d) for d in dimension]):
+            coordinate = tuple(c)
+            cell_states[coordinate] = state_class(rule.init_state(coordinate))
+        return cell_states
+
+    @staticmethod
+    def _make_cells(cell_states, neighborhood, dimension):
+        cells = {}
+        for coordinate, cell_state in cell_states.items():
             n_coordinates = neighborhood.calculate_cell_neighbor_coordinates(coordinate, dimension)
-            cell.neighbor_states = [cells[tuple(nc)].state for nc in n_coordinates]
+            neighbor_states = [cell_states[tuple(nc)] for nc in n_coordinates]
+            cells[coordinate] = Cell(cell_state, neighbor_states)
+        return cells
+
 

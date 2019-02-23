@@ -1,3 +1,19 @@
+"""
+Copyright 2019 Richard Feistenauer
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+"""
+
 import multiprocessing
 from multiprocessing import freeze_support
 from ctypes import c_int
@@ -12,10 +28,10 @@ class CellularAutomatonProcessor:
             self.evolve()
 
     def evolve(self):
-        self._ca.current_evolution_step += 1
         i = self._ca.current_evolution_step
         r = self._ca.evolution_rule.evolve_cell
         list(map(lambda c: c.evolve_if_ready(r, i), tuple(self._ca.cells.values())))
+        self._ca.current_evolution_step += 1
 
     def get_dimension(self):
         return self._ca.dimension
@@ -40,7 +56,6 @@ class CellularAutomatonMultiProcessor(CellularAutomatonProcessor):
 
         self.evolve_range = range(len(self._ca.cells))
         self._ca.current_evolution_step = multiprocessing.RawValue(c_int, self._ca.current_evolution_step)
-
         self.__init_processes_and_clean_cell_instances(process_count)
 
     def __init_processes_and_clean_cell_instances(self, process_count):
@@ -49,12 +64,10 @@ class CellularAutomatonMultiProcessor(CellularAutomatonProcessor):
                                          initargs=(tuple(self._ca.cells.values()),
                                                    self._ca.evolution_rule,
                                                    self._ca.current_evolution_step))
-        for cell in self._ca.cells.values():
-            del cell.neighbor_states
 
     def evolve(self):
-        self._ca.current_evolution_step += 1
         self.pool.map(_process_routine, self.evolve_range)
+        self._ca.current_evolution_step.value += 1
 
     def get_current_evolution_step(self):
         return self._ca.current_evolution_step.value

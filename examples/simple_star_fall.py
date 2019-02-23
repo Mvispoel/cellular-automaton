@@ -24,4 +24,4 @@ if __name__ == "__main__":
     ca = CAFactory.make_single_process_cellular_automaton(dimension=[100, 100],
                                                           neighborhood=neighborhood,
                                                           rule=TestRule)
-    ca_window = PyGameFor2D(cellular_automaton=ca, evolution_steps_per_draw=1)
+    ca_window = CAWindow(cellular_automaton=ca, evolution_steps_per_draw=1)

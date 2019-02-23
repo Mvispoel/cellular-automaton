@@ -1,9 +1,25 @@
-from enum import Enum
-from operator import add
-from itertools import product
+"""
+Copyright 2019 Richard Feistenauer
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+"""
+
+import enum
+import operator
+import itertools
 
 
-class EdgeRule(Enum):
+class EdgeRule(enum.Enum):
     IGNORE_EDGE_CELLS = 0
     IGNORE_MISSING_NEIGHBORS_OF_EDGE_CELLS = 1
     FIRST_AND_LAST_CELL_OF_DIMENSION_ARE_NEIGHBORS = 2
@@ -29,13 +45,16 @@ class Neighborhood:
         self.__grid_dimensions = grid_dimensions
         return list(self.__neighbors_generator(cell_coordinate))
 
+    def get_neighbor_id_from_rel(self, rel_coordinate):
+        return self._rel_neighbors.index(rel_coordinate)
+
     def __neighbors_generator(self, cell_coordinate):
         if not self.__does_ignore_edge_cell_rule_apply(cell_coordinate):
             for rel_n in self._rel_neighbors:
                 yield from self.__calculate_abs_neighbor_and_decide_validity(cell_coordinate, rel_n)
 
     def __calculate_abs_neighbor_and_decide_validity(self, cell_coordinate, rel_n):
-        n = list(map(add, rel_n, cell_coordinate))
+        n = list(map(operator.add, rel_n, cell_coordinate))
         n_folded = self.__apply_edge_overflow(n)
         if n == n_folded or self.__edge_rule == EdgeRule.FIRST_AND_LAST_CELL_OF_DIMENSION_ARE_NEIGHBORS:
             yield n_folded
@@ -70,6 +89,6 @@ class VonNeumannNeighborhood(Neighborhood):
 
 
 def _rel_neighbor_generator(dimension, range_, rule):
-    for c in product(range(-range_, range_ + 1), repeat=dimension):
+    for c in itertools.product(range(-range_, range_ + 1), repeat=dimension):
         if rule(c) and c != (0, ) * dimension:
             yield tuple(reversed(c))

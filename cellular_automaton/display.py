@@ -1,76 +1,105 @@
+"""
+Copyright 2019 Richard Feistenauer
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+"""
+
 import pygame
 import time
 import operator
 
-from . import CellularAutomatonState, CellularAutomatonProcessor
+import cellular_automaton.cellular_automaton._automaton as automaton
 
 
-class _DisplayInfo:
-    def __init__(self, grid_size, grid_pos, cell_size, screen):
-        self.grid_size = grid_size
-        self.grid_pos = grid_pos
-        self.cell_size = cell_size
-        self.screen = screen
-
-
-class DisplayFor2D:
-    def __init__(self, grid_rect: list, cellular_automaton: CellularAutomatonState, screen):
+class _CASurface:
+    def __init__(self, grid_rect: pygame.Rect, cellular_automaton: automaton.CellularAutomatonProcessor, screen):
         self._cellular_automaton = cellular_automaton
-        cell_size = self._calculate_cell_display_size(grid_rect[-2:])
-        self._display_info = _DisplayInfo(grid_rect[-2:], grid_rect[:2], cell_size, screen)
+        self.__rect = grid_rect
+        self.__cell_size = self._calculate_cell_display_size()
+        self.__screen = screen
+
+    def _calculate_cell_display_size(self):
+        grid_dimension = self._cellular_automaton.get_dimension()
+        return [self.__rect.width / grid_dimension[0], self.__rect.height / grid_dimension[1]]
 
     def redraw_cellular_automaton(self):
-        update_rects = list(self._cell_redraw_rectangles())
+        update_rects = list(self.__cell_redraw_dirty_rectangles())
         pygame.display.update(update_rects)
 
-    def _cell_redraw_rectangles(self):
-        for coordinate, cell in self._cellular_automaton.cells.items():
-            if cell.state.is_set_for_redraw():
-                cell_color = cell.state.get_state_draw_color(self._cellular_automaton.current_evolution_step)
-                cell_pos = self._calculate_cell_position(self._display_info.cell_size, coordinate)
-                surface_pos = list(map(operator.add, cell_pos, self._display_info.grid_pos))
-                yield self._display_info.screen.fill(cell_color, (surface_pos, self._display_info.cell_size))
-                cell.state.was_redrawn()
+    def __cell_redraw_dirty_rectangles(self):
+        for coordinate, cell in self._cellular_automaton.get_cells().items():
+            if cell.is_set_for_redraw():
+                yield from self.__redraw_cell(cell, coordinate)
 
-    def _calculate_cell_display_size(self, grid_size):
-        grid_dimension = self._cellular_automaton.dimension
-        return list(map(operator.truediv, grid_size, grid_dimension))
+    def __redraw_cell(self, cell, coordinate):
+        cell_color = self.__get_cell_color(cell)
+        cell_pos = self._calculate_cell_position_in_the_grid(coordinate)
+        surface_pos = self._calculate_cell_position_on_screen(cell_pos)
+        yield self._draw_the_cell_to_screen(cell_color, surface_pos)
+        cell.was_redrawn()
 
-    @staticmethod
-    def _calculate_cell_position(cell_size, coordinate):
-        return list(map(operator.mul, cell_size, coordinate))
+    def __get_cell_color(self, cell):
+        return self._cellular_automaton.get_current_rule().get_state_draw_color(
+            cell.get_current_state(self._cellular_automaton.get_current_evolution_step()))
+
+    def _calculate_cell_position_in_the_grid(self, coordinate):
+        return list(map(operator.mul, self.__cell_size, coordinate))
+
+    def _calculate_cell_position_on_screen(self, cell_pos):
+        return [self.__rect.left + cell_pos[0], self.__rect.top + cell_pos[1]]
+
+    def _draw_the_cell_to_screen(self, cell_color, surface_pos):
+        return self.__screen.fill(cell_color, (surface_pos, self.__cell_size))
 
 
-class PyGameFor2D:
-    def __init__(self, window_size: list, cellular_automaton: CellularAutomatonState):
-        self._window_size = window_size
-        self._cellular_automaton = cellular_automaton
+class CAWindow:
+    def __init__(self, cellular_automaton: automaton.CellularAutomatonProcessor,
+                 evolution_steps_per_draw=1,
+                 window_size=(1000, 800)):
+        self._ca = cellular_automaton
+        self.__window_size = window_size
+        self.__init_pygame()
+        self.__loop_evolution_and_redraw_of_automaton(evolution_steps_per_draw=evolution_steps_per_draw)
+
+    def __init_pygame(self):
         pygame.init()
         pygame.display.set_caption("Cellular Automaton")
-        self._screen = pygame.display.set_mode(self._window_size)
+        self._screen = pygame.display.set_mode(self.__window_size)
         self._font = pygame.font.SysFont("monospace", 15)
 
-        self.ca_display = DisplayFor2D([0, 30, window_size[0], window_size[1] - 30], cellular_automaton, self._screen)
+        self.ca_display = _CASurface(pygame.Rect(0, 30, self.__window_size[0], self.__window_size[1] - 30),
+                                     self._ca,
+                                     self._screen)
 
-    def _print_process_duration(self, time_ca_end, time_ca_start, time_ds_end):
-        self._screen.fill([0, 0, 0], ((0, 0), (self._window_size[0], 30)))
-        self._write_text((10, 5), "CA: " + "{0:.4f}".format(time_ca_end - time_ca_start) + "s")
-        self._write_text((310, 5), "Display: " + "{0:.4f}".format(time_ds_end - time_ca_end) + "s")
-        self._write_text((660, 5), "Step: " + str(self._cellular_automaton.current_evolution_step))
-
-    def _write_text(self, pos, text, color=(0, 255, 0)):
-        label = self._font.render(text, 1, color)
-        update_rect = self._screen.blit(label, pos)
-        pygame.display.update(update_rect)
-
-    def main_loop(self, cellular_automaton_processor: CellularAutomatonProcessor, evolution_steps_per_draw):
+    def __loop_evolution_and_redraw_of_automaton(self, evolution_steps_per_draw):
         running = True
 
         while running:
             pygame.event.get()
             time_ca_start = time.time()
-            cellular_automaton_processor.evolve_x_times(evolution_steps_per_draw)
+            self._ca.evolve_x_times(evolution_steps_per_draw)
             time_ca_end = time.time()
             self.ca_display.redraw_cellular_automaton()
             time_ds_end = time.time()
-            self._print_process_duration(time_ca_end, time_ca_start, time_ds_end)
+            self.__print_process_duration(time_ca_end, time_ca_start, time_ds_end)
+
+    def __print_process_duration(self, time_ca_end, time_ca_start, time_ds_end):
+        self._screen.fill([0, 0, 0], ((0, 0), (self.__window_size[0], 30)))
+        self.__write_text((10, 5), "CA: " + "{0:.4f}".format(time_ca_end - time_ca_start) + "s")
+        self.__write_text((310, 5), "Display: " + "{0:.4f}".format(time_ds_end - time_ca_end) + "s")
+        self.__write_text((660, 5), "Step: " + str(self._ca.get_current_evolution_step()))
+
+    def __write_text(self, pos, text, color=(0, 255, 0)):
+        label = self._font.render(text, 1, color)
+        update_rect = self._screen.blit(label, pos)
+        pygame.display.update(update_rect)
