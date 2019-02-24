@@ -45,7 +45,7 @@ class Neighborhood:
         self.__grid_dimensions = grid_dimensions
         return list(self.__neighbors_generator(cell_coordinate))
 
-    def get_neighbor_id_from_rel(self, rel_coordinate):
+    def get_id_of_neighbor_from_relative_coordinate(self, rel_coordinate):
         return self._rel_neighbors.index(rel_coordinate)
 
     def __neighbors_generator(self, cell_coordinate):
@@ -70,12 +70,45 @@ class Neighborhood:
 
 
 class MooreNeighborhood(Neighborhood):
+    """ Defines a Moore neighborhood:
+        Moore defined a neighborhood with a radius applied on a the non euclidean distance to other cells in the grid.
+        Example:
+            Moor neighborhood in 2 dimensions with radius 1 and 2
+            C = cell of interest
+            N = neighbour of cell
+            X = no neighbour of cell
+
+                  Radius 1                     Radius 2
+               X  X  X  X  X                N  N  N  N  N
+               X  N  N  N  X                N  N  N  N  N
+               X  N  C  N  X                N  N  C  N  N
+               X  N  N  N  X                N  N  N  N  N
+               X  X  X  X  X                N  N  N  N  N
+    """
+
     def __init__(self, edge_rule: EdgeRule = EdgeRule.IGNORE_EDGE_CELLS, range_=1, dimension=2):
         super().__init__(tuple(_rel_neighbor_generator(dimension, range_, lambda rel_n: True)),
                          edge_rule)
 
 
 class VonNeumannNeighborhood(Neighborhood):
+    """ Defines a Von Neumann neighborhood:
+        Von Neumann defined a neighborhood with a radius applied to Manhatten distance
+        (steps between cells without diagonal movement).
+        Example:
+            Von Neumann neighborhood in 2 dimensions with radius 1 and 2
+            C = cell of interest
+            N = neighbour of cell
+            X = no neighbour of cell
+
+                  Radius 1                     Radius 2
+               X  X  X  X  X                X  X  N  X  X
+               X  X  N  X  X                X  N  N  N  X
+               X  N  C  N  X                N  N  C  N  N
+               X  X  N  X  X                X  N  N  N  X
+               X  X  X  X  X                X  X  N  X  X
+    """
+
     def __init__(self, edge_rule: EdgeRule = EdgeRule.IGNORE_EDGE_CELLS, range_=1, dimension=2):
         self.range_ = range_
         super().__init__(tuple(_rel_neighbor_generator(dimension, range_, self.neighbor_rule)),

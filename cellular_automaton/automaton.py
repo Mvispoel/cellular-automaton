@@ -21,14 +21,20 @@ from ctypes import c_int
 
 
 class CellularAutomatonProcessor:
+    """ This class is responsible for the evolution of the cells. """
+
     def __init__(self, cellular_automaton):
         self._ca = cellular_automaton
 
     def evolve_x_times(self, x):
+        """ Evolve all cells x times.
+        :param x: The number of evolution steps processed with the call of this method.
+        """
         for x in range(x):
             self.evolve()
 
     def evolve(self):
+        """ Evolve all cells """
         self._ca.current_evolution_step += 1
         i = self._ca.current_evolution_step
         r = self._ca.evolution_rule.evolve_cell
@@ -48,6 +54,14 @@ class CellularAutomatonProcessor:
 
 
 class CellularAutomatonMultiProcessor(CellularAutomatonProcessor):
+    """ This is a variant of CellularAutomatonProcessor that uses multi processing.
+        The evolution of the cells will be outsourced to new processes.
+
+        WARNING:
+        This variant has high memory use!
+        The inter process communication overhead can make this variant slower than single processing!
+    """
+
     def __init__(self, cellular_automaton, process_count: int = 2):
         multiprocessing.freeze_support()
         if process_count < 1:
@@ -57,9 +71,9 @@ class CellularAutomatonMultiProcessor(CellularAutomatonProcessor):
 
         self.evolve_range = range(len(self._ca.cells))
         self._ca.current_evolution_step = RawValue(c_int, self._ca.current_evolution_step)
-        self.__init_processes_and_clean_cell_instances(process_count)
+        self.__init_processes(process_count)
 
-    def __init_processes_and_clean_cell_instances(self, process_count):
+    def __init_processes(self, process_count):
         self.pool = multiprocessing.Pool(processes=process_count,
                                          initializer=_init_process,
                                          initargs=(tuple(self._ca.cells.values()),

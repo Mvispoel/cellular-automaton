@@ -26,6 +26,8 @@ from .cell_state import CellState, SynchronousCellState
 
 
 class CAFactory:
+    """ This factory provides an easy way to create cellular automatons with single or multi processing. """
+
     @staticmethod
     def make_single_process_cellular_automaton(dimension,
                                                neighborhood: Neighborhood,
@@ -67,7 +69,7 @@ class CAFactory:
         cells = {}
         for coordinate, cell_state in cell_states.items():
             n_coordinates = neighborhood.calculate_cell_neighbor_coordinates(coordinate, dimension)
-            neighbor_states = [cell_states[tuple(nc)] for nc in n_coordinates]
+            neighbor_states = tuple([cell_states[tuple(nc)] for nc in n_coordinates])
             cells[coordinate] = Cell(cell_state, neighbor_states)
         return cells
 

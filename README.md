@@ -79,8 +79,9 @@ class MyRule(Rule):
 Just inherit from `cellular_automaton.rule:Rule` and define the evolution rule and initial state.
 
 ## Visualisation
-The module provides a pygame window for common two dimensional.
-To add another kind of display option e.g. for other dimensions or hexagonal grids you can extrend the provided implementation or build you own.
+The package provides a module for visualization in a pygame window for common two dimensional automatons.
+
+To add another kind of display option e.g. for other dimensions or hexagonal grids you can extrend the provided implementation or build your own.
 The visual part of this module is fully decoupled and thus should be easily replaceable.
 
 ## Examples
@@ -93,3 +94,6 @@ Those two example automaton implementations should provide a good start for your
 ## Dependencies
 As mentioned above the module depends on [pygame](https://www.pygame.org/news) for visualisation.
 This is the only dependency however.
+
+## Licence
+This package is distributed under the [Apache License, Version 2.0](https://www.apache.org/licenses/LICENSE-2.0), see [LICENSE](./LICENSE.txt)

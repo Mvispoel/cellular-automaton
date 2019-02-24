@@ -33,10 +33,11 @@ class _CASurface:
         return [self.__rect.width / grid_dimension[0], self.__rect.height / grid_dimension[1]]
 
     def redraw_cellular_automaton(self):
-        update_rectangles = list(self.__cell_redraw_dirty_rectangles())
+        """ Redraws those cells which changed their state since last redraw. """
+        update_rectangles = list(self.__redraw_dirty_cells())
         pygame.display.update(update_rectangles)
 
-    def __cell_redraw_dirty_rectangles(self):
+    def __redraw_dirty_cells(self):
         for coordinate, cell in self._cellular_automaton.get_cells().items():
             if cell.is_set_for_redraw():
                 yield from self.__redraw_cell(cell, coordinate)

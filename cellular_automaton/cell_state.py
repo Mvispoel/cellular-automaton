@@ -35,20 +35,19 @@ class CellState:
     def is_active(self, current_evolution_step):
         """ Returns the active status for the requested evolution_step
         :param current_evolution_step: The evolution_step of interest.
-        :return: True if the cell state is set active for this evolution_step.
+        :return: True if the cell or one of its neighbours changed in the last evolution step.
         """
         return self._active[self._calculate_slot(current_evolution_step)]
 
     def set_active_for_next_evolution_step(self, current_evolution_step):
         """ Sets the cell active for the next evolution_step, so it will be evolved.
         :param current_evolution_step: The current evolution_step index.
-        :return:
         """
         self._active[self._calculate_slot(current_evolution_step + 1)] = True
 
     def is_set_for_redraw(self):
         """ States if this state should be redrawn.
-        :return: True if redraw is needed.
+        :return: True if state changed since last call of 'was_redrawn'.
         """
         return self._dirty
 
@@ -62,7 +61,7 @@ class CellState:
     def get_state_of_evolution_step(self, evolution_step):
         """ Returns the state of the evolution_step.
         :param evolution_step:  Uses the evolution_step index, to differ between concurrent states.
-        :return The state of this evolution_step.
+        :return The state of the requested evolution_step.
         """
         return self._state_slots[self._calculate_slot(evolution_step)]
 
@@ -71,6 +70,7 @@ class CellState:
         :param new_state:  The new state to set.
         :param evolution_step:  The evolution_step index, to differ between concurrent states.
         :return True if the state really changed.
+        :raises IndexError: If the state length changed.
         """
         changed = self._set_new_state_if_valid(new_state, evolution_step)
         self._dirty |= changed
@@ -111,9 +111,8 @@ class CellState:
 
 
 class SynchronousCellState(CellState):
-    """
-        CellState version using shared values for multi processing purpose.
-    """
+    """ CellState version using shared values for multi processing purpose. """
+
     def __init__(self, initial_state=(0., ), draw_first_state=True):
         super().__init__(initial_state, draw_first_state)
         self._state_slots = [RawArray(c_float, initial_state) for i in range(self.__class__._state_save_slot_count)]

@@ -18,6 +18,8 @@ from . import Rule
 
 
 class CellularAutomatonState:
+    """ Holds all relevant information about the cellular automaton """
+
     def __init__(self, cells, dimension, evolution_rule: Rule):
         self.cells = cells
         self.dimension = dimension
