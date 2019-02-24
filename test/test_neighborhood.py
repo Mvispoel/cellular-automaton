@@ -59,7 +59,7 @@ class TestNeighborhood(unittest.TestCase):
         self.assertTrue(self.check_neighbors(neighborhood, [n1]))
 
     def test_von_neumann_r2(self):
-        neighborhood = csn.VonNeumannNeighborhood(csn.EdgeRule.FIRST_AND_LAST_CELL_OF_DIMENSION_ARE_NEIGHBORS, range_=2)
+        neighborhood = csn.VonNeumannNeighborhood(csn.EdgeRule.FIRST_AND_LAST_CELL_OF_DIMENSION_ARE_NEIGHBORS, radius=2)
         n1 = [[2, 2], [[2, 0], [1, 1], [2, 1], [3, 1], [0, 2], [1, 2], [3, 2], [4, 2], [1, 3], [2, 3], [3, 3], [2, 4]]]
         self.assertTrue(self.check_neighbors(neighborhood, [n1], dimension=[5, 5]))
 
@@ -68,6 +68,29 @@ class TestNeighborhood(unittest.TestCase):
                                                   dimension=3)
         n1 = [[1, 1, 1], [[1, 1, 0], [1, 0, 1], [0, 1, 1], [2, 1, 1], [1, 2, 1], [1, 1, 2]]]
         self.assertTrue(self.check_neighbors(neighborhood, [n1], dimension=[3, 3, 3]))
+
+    def test_hexagonal(self):
+        neighborhood = csn.RadialNeighborhood(csn.EdgeRule.IGNORE_EDGE_CELLS, radius=2)
+        n1 = [[2, 2], [[1, 0], [2, 0], [3, 0],
+                       [0, 1], [1, 1], [2, 1], [3, 1], [4, 1],
+                       [0, 2], [1, 2], [3, 2], [4, 2],
+                       [0, 3], [1, 3], [2, 3], [3, 3], [4, 3],
+                       [1, 4], [2, 4], [3, 4]]]
+        self.assertTrue(self.check_neighbors(neighborhood, [n1], dimension=[5, 5]))
+
+    def test_hexagonal(self):
+        neighborhood = csn.HexagonalNeighborhood(csn.EdgeRule.IGNORE_EDGE_CELLS, radius=2)
+        n1 = [[2, 2], [[1, 0], [2, 0], [3, 0],
+                       [0, 1], [1, 1], [2, 1], [3, 1],
+                       [0, 2], [1, 2], [3, 2], [4, 2],
+                       [0, 3], [1, 3], [2, 3], [3, 3],
+                       [1, 4], [2, 4], [3, 4]]]
+        n2 = [[2, 3], [[1, 1], [2, 1], [3, 1],
+                       [1, 2], [2, 2], [3, 2], [4, 2],
+                       [0, 3], [1, 3], [3, 3], [4, 3],
+                       [1, 4], [2, 4], [3, 4], [4, 4],
+                       [1, 5], [2, 5], [3, 5]]]
+        self.assertTrue(self.check_neighbors(neighborhood, [n1, n2], dimension=[6, 6]))
 
 
 if __name__ == '__main__':
