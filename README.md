@@ -1,5 +1,5 @@
 # Cellular Automaton
-This package provides an cellular automaton for [`Python® 3`](https://www.python.org/)
+This package provides an cellular automaton for [Python 3](https://www.python.org/)
 
 A cellular automaton defines a grid of cells and a set of rules.
 All cells then evolve their state depending on their neighbours state simultaneously.
@@ -17,16 +17,15 @@ but it is to my best knowledge the first that provides all of the following feat
  - tested
  
 I originally did not plan to write a new cellular automaton module, 
-but when searching for one, I just found some minimalistic implementations,
-that had little or no documentation with an API that really did not fit the problem
-and Code that was desperately asking for some refactoring.
+but when searching for one, I just found some that had little or no documentation with an API that really did not fit my requirements
+and/or Code that was desperately asking for some refactoring.
 
 So I started to write my own module with the goal to provide an user friendly API
 and acceptable documentation. During the implementation I figured, why not just provide 
 n dimensional support and with reading Clean Code from Robert C. Martin the urge
 to have a clean and tested code with a decent coverage added some more requirements.
 The speed optimization and multi process capability was more of challenge for myself.
-IMHO the module now reached an acceptable speed, but there is still room for improvements.
+IMHO the module now reached an acceptable speed, but there is still room for improvements (e.g. with Numba?).
 
 ## Usage
 To start and use the automaton you will have to define three things:
@@ -89,11 +88,17 @@ The package contains two examples:
 - [simple_star_fall](./examples/simple_star_fall.py)
 - [conways_game_of_life](./examples/conways_game_of_life.py)
 
-Those two example automaton implementations should provide a good start for your own automaton.
+Those example automaton implementations should provide a good start for your own project.
+
+## Getting Involved
+Feel free to open pull requests, send me feature requests or even join as developer.
+There ist still quite some work to do.
+
+And for all others, don't hesitate to open issues when you have problems!
 
 ## Dependencies
 As mentioned above the module depends on [pygame](https://www.pygame.org/news) for visualisation.
 This is the only dependency however.
 
 ## Licence
-This package is distributed under the [Apache License, Version 2.0](https://www.apache.org/licenses/LICENSE-2.0), see [LICENSE](./LICENSE.txt)
+This package is distributed under the [Apache License, Version 2.0](https://www.apache.org/licenses/LICENSE-2.0), see [LICENSE.txt](./LICENSE.txt)

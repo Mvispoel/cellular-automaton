@@ -5,3 +5,7 @@ __pycache__
 htmlcov/
 *.orig
 performance.txt
+dist/
+cellular_automaton.egg-info/
+build/
+MANIFEST
