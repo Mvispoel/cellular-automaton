@@ -15,9 +15,9 @@ limitations under the License.
 """
 
 import sys
-sys.path.append('../..')
+sys.path.append('../cellular_automaton')
 
-from cellular_automaton import cellular_automaton as csn
+import cellular_automaton as csn
 import unittest
 
 
