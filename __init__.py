@@ -1,1 +1,0 @@
-from .cellular_automaton import *

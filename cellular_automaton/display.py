@@ -86,13 +86,16 @@ class CAWindow:
         running = True
 
         while running:
-            pygame.event.get()
             time_ca_start = time.time()
             self._ca.evolve_x_times(evolution_steps_per_draw)
             time_ca_end = time.time()
             self.ca_display.redraw_cellular_automaton()
             time_ds_end = time.time()
             self.__print_process_duration(time_ca_end, time_ca_start, time_ds_end)
+
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    running = False
 
     def __print_process_duration(self, time_ca_end, time_ca_start, time_ds_end):
         self._screen.fill([0, 0, 0], ((0, 0), (self.__window_size[0], 30)))
