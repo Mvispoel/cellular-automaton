@@ -35,16 +35,19 @@ class TestNeighborhood(unittest.TestCase):
     def test_ignore_missing_neighbors(self):
         neighborhood = csn.MooreNeighborhood(csn.EdgeRule.IGNORE_MISSING_NEIGHBORS_OF_EDGE_CELLS)
         n00 = [[0, 0], [[1, 0], [0, 1], [1, 1]]]
+        n01 = [[0, 1], [[0, 0], [1, 0], [1, 1], [0, 2], [1, 2]]]
         n11 = [[1, 1], [[0, 0], [1, 0], [2, 0], [0, 1], [2, 1], [0, 2], [1, 2], [2, 2]]]
         n22 = [[2, 2], [[1, 1], [2, 1], [1, 2]]]
-        self.assertTrue(self.check_neighbors(neighborhood, [n00, n11, n22]))
+        self.assertTrue(self.check_neighbors(neighborhood, [n00, n01, n11, n22]))
 
     def test_ignore_edge_cells(self):
         neighborhood = csn.MooreNeighborhood(csn.EdgeRule.IGNORE_EDGE_CELLS)
         n00 = [[0, 0], []]
+        n01 = [[0, 1], []]
+        n20 = [[2, 0], []]
         n11 = [[1, 1], [[0, 0], [1, 0], [2, 0], [0, 1], [2, 1], [0, 2], [1, 2], [2, 2]]]
         n22 = [[2, 2], []]
-        self.assertTrue(self.check_neighbors(neighborhood, [n00, n11, n22]))
+        self.assertTrue(self.check_neighbors(neighborhood, [n00, n01, n20, n11, n22]))
 
     def test_cyclic_dimensions(self):
         neighborhood = csn.MooreNeighborhood(csn.EdgeRule.FIRST_AND_LAST_CELL_OF_DIMENSION_ARE_NEIGHBORS)

@@ -64,7 +64,7 @@ class Neighborhood:
         return self.__edge_rule == EdgeRule.IGNORE_EDGE_CELLS and self.__is_coordinate_on_an_edge(coordinate)
 
     def __is_coordinate_on_an_edge(self, coordinate):
-        return all(0 == ci or ci == di-1 for ci, di in zip(coordinate, self.__grid_dimensions))
+        return any(0 == ci or ci == di-1 for ci, di in zip(coordinate, self.__grid_dimensions))
 
     def __apply_edge_overflow(self, n):
         return list(map(lambda ni, di: (ni + di) % di, n, self.__grid_dimensions))
