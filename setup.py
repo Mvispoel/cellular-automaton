@@ -14,6 +14,6 @@ setup(
     description="N dimensional cellular automaton with multi processing capability.",
     long_description=long_description,
     long_description_content_type='text/markdown',
-    requires=["pygame"],
+    requires=[""],
     python_requires='>3.6.1'
 )

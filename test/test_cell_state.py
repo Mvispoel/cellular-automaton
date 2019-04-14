@@ -17,13 +17,13 @@ limitations under the License.
 import sys
 sys.path.append('../cellular_automaton')
 
-from cellular_automaton import cell_state
+from cellular_automaton.cellular_automaton.cell_state import SynchronousCellState
 import unittest
 
 
 class TestCellState(unittest.TestCase):
     def setUp(self):
-        self.cell_state = cell_state.SynchronousCellState(initial_state=(0,), draw_first_state=False)
+        self.cell_state = SynchronousCellState(initial_state=(0,), draw_first_state=False)
 
     def test_get_state_with_overflow(self):
         self.cell_state.set_state_of_evolution_step(new_state=(1,), evolution_step=0)
@@ -63,7 +63,7 @@ class TestCellState(unittest.TestCase):
         return self.cell_state.set_state_of_evolution_step(new_state=(1, 1), evolution_step=0)
 
     def test_redraw_flag(self):
-        self.cell_state = cell_state.SynchronousCellState(initial_state=(0,), draw_first_state=True)
+        self.cell_state = SynchronousCellState(initial_state=(0,), draw_first_state=True)
         self.assertTrue(self.cell_state.is_set_for_redraw())
         self.cell_state.was_redrawn()
         self.assertFalse(self.cell_state.is_set_for_redraw())

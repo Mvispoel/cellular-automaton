@@ -15,10 +15,10 @@ limitations under the License.
 """
 
 import sys
-sys.path.append('../cellular_automaton')
+sys.path.append('..')
 
-from cellular_automaton.cell import Cell
-from cellular_automaton.cell_state import CellState
+from cellular_automaton.cellular_automaton.cell import Cell
+from cellular_automaton.cellular_automaton.cell_state import CellState
 import unittest
 
 

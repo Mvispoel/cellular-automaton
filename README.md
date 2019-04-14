@@ -97,8 +97,11 @@ There ist still quite some work to do.
 And for all others, don't hesitate to open issues when you have problems!
 
 ## Dependencies
-As mentioned above the module depends on [pygame](https://www.pygame.org/news) for visualisation.
-This is the only dependency however.
+For direct usage of the cellular automaton ther is no dependency.
+If you want to use the display option however or execute the examples you will have to install 
+[pygame](https://www.pygame.org/news) for visualisation.
+If you do for some reason not want to use this engine simply inherit from display.DrawEngine and overwrite the 
+necessary methods. (for an example of how to do so see ./test/test_display.py)
 
 ## Licence
 This package is distributed under the [Apache License, Version 2.0](https://www.apache.org/licenses/LICENSE-2.0), see [LICENSE.txt](./LICENSE.txt)
