@@ -85,8 +85,8 @@ The visual part of this module is fully decoupled and thus should be easily repl
 
 ## Examples
 The package contains two examples:
-- [simple_star_fall](./examples/simple_star_fall.py)
-- [conways_game_of_life](./examples/conways_game_of_life.py)
+- [simple_star_fall](https://gitlab.com/DamKoVosh/cellular_automaton/-/tree/master/examples/simple_star_fall.py)
+- [conways_game_of_life](https://gitlab.com/DamKoVosh/cellular_automaton/-/tree/master/examples/conways_game_of_life.py)
 
 Those example automaton implementations should provide a good start for your own project.
 
@@ -104,4 +104,4 @@ If you do for some reason not want to use this engine simply inherit from displa
 necessary methods. (for an example of how to do so see ./test/test_display.py)
 
 ## Licence
-This package is distributed under the [Apache License, Version 2.0](https://www.apache.org/licenses/LICENSE-2.0), see [LICENSE.txt](./LICENSE.txt)
+This package is distributed under the [Apache License, Version 2.0](https://www.apache.org/licenses/LICENSE-2.0), see [LICENSE.txt](https://gitlab.com/DamKoVosh/cellular_automaton/-/tree/master/LICENSE.txt)
