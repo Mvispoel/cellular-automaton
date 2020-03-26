@@ -27,6 +27,9 @@ to have a clean and tested code with a decent coverage added some more requireme
 The speed optimization and multi process capability was more of challenge for myself.
 IMHO the module now reached an acceptable speed, but there is still room for improvements (e.g. with Numba?).
 
+## Installation
+This module can be loaded and installed from [pipy](https://pypi.org/project/cellular-automaton/): `pip install cellular-automaton`
+
 ## Usage
 To start and use the automaton you will have to define three things:
 - The neighborhood
